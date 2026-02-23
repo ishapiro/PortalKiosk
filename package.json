@@ -1,0 +1,24 @@
+{
+  "name": "portal-kiosk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "./scripts/dev.sh",
+    "dev:ui": "nuxt dev",
+    "deploy": "npm run build && npx wrangler deploy",
+    "migrate:local": "npm run migrate:local:d1",
+    "migrate:local:d1": "wrangler d1 execute portal-kiosk-db --local --file=./migrations/0000_initial.sql",
+    "migrate:remote": "npm run migrate:remote:d1",
+    "migrate:remote:d1": "wrangler d1 execute portal-kiosk-db --remote --file=./migrations/0000_initial.sql",
+    "preview": "npx wrangler dev",
+    "postinstall": "nuxt prepare"
+  },
+  "devDependencies": {
+    "nuxt": "^3.14.0",
+    "typescript": "^5.6.0",
+    "vue": "^3.5.0",
+    "wrangler": "^3.94.0"
+  }
+}

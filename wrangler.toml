@@ -1,0 +1,29 @@
+name = "portal-kiosk"
+main = ".output/server/index.mjs"
+compatibility_date = "2024-12-01"
+
+[build]
+command = "npm run build"
+watch_dirs = ["pages", "components", "server", "layouts", "app.vue", "nuxt.config.ts"]
+
+# Custom domain: brodycountryclub.cogitations.com
+# Add your zone_id and route after adding the domain in Cloudflare DNS.
+# routes = [
+#   { pattern = "brodycountryclub.cogitations.com", zone_name = "cogitations.com" }
+# ]
+
+# For local dev and default Workers host:
+# workers_dev = true
+
+[site]
+bucket = ".output/public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "portal-kiosk-db"
+database_id = "placeholder-replace-with-real-id"
+
+[vars]
+# Set via .dev.vars locally; use wrangler secret put for production.
+# NUXT_ADMIN_PASSWORD = ""
+# NUXT_STATION_PASSWORD = ""

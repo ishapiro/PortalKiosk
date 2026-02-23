@@ -1,0 +1,27 @@
+# Nuxt
+.nuxt
+.output
+.data
+*.log
+node_modules
+
+# Env and secrets
+.env
+.env.*
+!.env.example
+.dev.vars
+
+# Wrangler / Cloudflare
+.wrangler
+.dev.vars
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
