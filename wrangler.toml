@@ -9,8 +9,8 @@ compatibility_flags = ["nodejs_compat"]
 #   { pattern = "brodycountryclub.cogitations.com", zone_name = "cogitations.com" }
 # ]
 
-# For local dev and default Workers host:
-# workers_dev = true
+# Publish to *.workers.dev; uncomment and set routes for custom domain.
+workers_dev = true
 
 # Static assets (logo, _nuxt/*) served before Worker; Worker handles pages/API
 [assets]
@@ -20,7 +20,7 @@ binding = "ASSETS"
 [[d1_databases]]
 binding = "DB"
 database_name = "portal-kiosk-db"
-database_id = "placeholder-replace-with-real-id"
+database_id = "f85042b7-e30f-4b65-bb43-086c9d063b5a"
 
 [vars]
 # Set via .dev.vars locally; use wrangler secret put for production.
