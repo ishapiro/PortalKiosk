@@ -5,20 +5,19 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
-    "dev": "./scripts/dev.sh",
+    "dev": "npm run migrate:local && echo 'Starting Wrangler dev mode...' && npm run build && npx wrangler dev",
     "dev:ui": "nuxt dev",
     "deploy": "npm run build && npx wrangler deploy",
-    "migrate:local": "npm run migrate:local:d1",
-    "migrate:local:d1": "wrangler d1 execute portal-kiosk-db --local --file=./migrations/0000_initial.sql",
-    "migrate:remote": "npm run migrate:remote:d1",
-    "migrate:remote:d1": "wrangler d1 execute portal-kiosk-db --remote --file=./migrations/0000_initial.sql",
+    "migrate:local": "./scripts/run-migrations.sh",
+    "migrate:remote": "./scripts/run-migrations.sh --remote",
     "preview": "npx wrangler dev",
     "postinstall": "nuxt prepare"
   },
   "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.12.0",
     "nuxt": "^3.14.0",
     "typescript": "^5.6.0",
     "vue": "^3.5.0",
-    "wrangler": "^3.94.0"
+    "wrangler": "^4.64.0"
   }
 }

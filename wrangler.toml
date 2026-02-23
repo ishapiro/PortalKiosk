@@ -1,10 +1,7 @@
 name = "portal-kiosk"
 main = ".output/server/index.mjs"
-compatibility_date = "2024-12-01"
-
-[build]
-command = "npm run build"
-watch_dirs = ["pages", "components", "server", "layouts", "app.vue", "nuxt.config.ts"]
+compatibility_date = "2024-09-19"
+compatibility_flags = ["nodejs_compat"]
 
 # Custom domain: brodycountryclub.cogitations.com
 # Add your zone_id and route after adding the domain in Cloudflare DNS.
@@ -15,8 +12,10 @@ watch_dirs = ["pages", "components", "server", "layouts", "app.vue", "nuxt.confi
 # For local dev and default Workers host:
 # workers_dev = true
 
-[site]
-bucket = ".output/public"
+# Static assets (logo, _nuxt/*) served before Worker; Worker handles pages/API
+[assets]
+directory = ".output/public"
+binding = "ASSETS"
 
 [[d1_databases]]
 binding = "DB"
