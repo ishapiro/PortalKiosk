@@ -19,3 +19,13 @@ Everything is done via Wrangler; no Dashboard clicks required (except optional c
    `npm run deploy`
 
 Your app will be live at `https://portal-kiosk.<your-subdomain>.workers.dev`. For a custom domain (e.g. `brodycountryclub.cogitations.com`), add the domain in Cloudflare DNS, then uncomment and set the `routes` block in `wrangler.toml` and redeploy.
+
+### Copying local data to production
+
+After you’ve added product classes, products, and customizations via the Admin UI locally, push that data to the remote D1 database:
+
+```bash
+./scripts/migrate-local-to-remote.sh
+```
+
+This exports your local D1, extracts all `INSERT` rows, and applies them to the remote database (using `INSERT OR REPLACE` so you can run it again safely). Ensure the remote schema is up to date first (`./scripts/run-migrations.sh --remote`).
