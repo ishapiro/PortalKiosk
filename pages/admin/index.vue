@@ -384,6 +384,217 @@
         </div>
       </div>
     </section>
+
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-semibold text-gray-900 tracking-tight">
+            Customization options
+          </h2>
+          <p class="text-xs text-gray-600">
+            Define options per product class (e.g. Toppings for Parfait, Sugar for Beverage).
+          </p>
+        </div>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-brand text-xs font-medium text-white shadow-sm hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-1 focus:ring-offset-white"
+          @click="refreshCustomizations"
+        >
+          Refresh
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div class="flex flex-wrap items-center gap-3">
+          <label class="text-xs font-medium text-gray-700 uppercase tracking-wide">
+            Product class
+          </label>
+          <select
+            v-model.number="selectedCustomizationClassId"
+            class="px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
+          >
+            <option
+              disabled
+              value="0"
+            >
+              Select a class
+            </option>
+            <option
+              v-for="cls in productClasses"
+              :key="cls.id"
+              :value="cls.id"
+            >
+              {{ cls.name }}
+            </option>
+          </select>
+        </div>
+
+        <div
+          v-if="!selectedCustomizationClassId"
+          class="text-sm text-gray-500"
+        >
+          Choose a product class to manage its customization groups.
+        </div>
+
+        <div
+          v-else
+          class="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)]"
+        >
+          <div class="space-y-2">
+            <div
+              v-if="customizationsLoading"
+              class="text-sm text-gray-500"
+            >
+              Loading…
+            </div>
+            <div
+              v-else-if="customizationsError"
+              class="text-sm text-red-600"
+            >
+              {{ customizationsError }}
+            </div>
+            <ul
+              v-else
+              class="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden bg-gray-50"
+            >
+              <li
+                v-for="opt in customizations"
+                :key="opt.id"
+                class="px-3 py-2.5 flex items-center justify-between gap-3"
+              >
+                <div>
+                  <p class="text-sm font-medium text-gray-900">
+                    {{ opt.label }}
+                  </p>
+                  <p class="text-xs text-gray-500">
+                    {{ opt.kind === 'multi' ? 'Multi' : 'Single' }}
+                    <template v-if="opt.kind === 'multi'">
+                      {{ opt.max_selections != null ? `(max ${opt.max_selections})` : '(no limit)' }}
+                    </template>
+                    · {{ (opt.options || []).length }} options
+                  </p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    class="text-xs font-medium text-brand hover:text-brand-light"
+                    @click="startEditCustomization(opt)"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    class="text-xs text-red-600 hover:text-red-700"
+                    @click="deleteCustomization(opt.id)"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </li>
+              <li
+                v-if="customizations.length === 0"
+                class="px-3 py-4 text-sm text-gray-500 text-center"
+              >
+                No customization groups yet. Add one with the form.
+              </li>
+            </ul>
+          </div>
+
+          <div class="space-y-3">
+            <h3 class="text-sm font-semibold text-gray-900">
+              {{ editingCustomizationId ? 'Edit customization' : 'Add customization' }}
+            </h3>
+
+            <form
+              class="space-y-3"
+              @submit.prevent="submitCustomization"
+            >
+              <div class="space-y-1.5">
+                <label class="block text-xs font-medium text-gray-700 uppercase tracking-wide">
+                  Label
+                </label>
+                <input
+                  v-model="customizationLabel"
+                  type="text"
+                  class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
+                  placeholder="Toppings"
+                />
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="block text-xs font-medium text-gray-700 uppercase tracking-wide">
+                  Kind
+                </label>
+                <select
+                  v-model="customizationKind"
+                  class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
+                >
+                  <option value="single">
+                    Single
+                  </option>
+                  <option value="multi">
+                    Multi
+                  </option>
+                </select>
+              </div>
+
+              <div
+                v-if="customizationKind === 'multi'"
+                class="space-y-1.5"
+              >
+                <label class="block text-xs font-medium text-gray-700 uppercase tracking-wide">
+                  Max selections (optional)
+                </label>
+                <input
+                  v-model.number="customizationMaxSelections"
+                  type="number"
+                  min="0"
+                  class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
+                  placeholder="No limit if empty"
+                />
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="block text-xs font-medium text-gray-700 uppercase tracking-wide">
+                  Options (one per line)
+                </label>
+                <textarea
+                  v-model="customizationOptionsText"
+                  rows="4"
+                  class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
+                  placeholder="Strawberries&#10;Granola&#10;Oreo"
+                />
+              </div>
+
+              <p
+                v-if="customizationFormError"
+                class="text-xs text-red-600"
+              >
+                {{ customizationFormError }}
+              </p>
+
+              <div class="flex items-center gap-3">
+                <button
+                  type="submit"
+                  class="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-brand text-xs font-medium text-white shadow-sm hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-1 focus:ring-offset-white disabled:opacity-60"
+                  :disabled="customizationSubmitting"
+                >
+                  {{ editingCustomizationId ? 'Save' : 'Add' }}
+                </button>
+                <button
+                  v-if="editingCustomizationId"
+                  type="button"
+                  class="text-xs text-gray-500 hover:text-gray-700"
+                  @click="resetCustomizationForm"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -429,6 +640,27 @@ const productSortOrder = ref<number | null>(0)
 const productFormError = ref('')
 const productSubmitting = ref(false)
 const editingProductId = ref<number | null>(null)
+
+const selectedCustomizationClassId = ref<number | null>(null)
+const customizations = ref<
+  {
+    id: number
+    product_class_id: number
+    label: string
+    kind: string
+    options: string[]
+    max_selections: number | null
+  }[]
+>([])
+const customizationsLoading = ref(false)
+const customizationsError = ref('')
+const customizationLabel = ref('')
+const customizationKind = ref<'single' | 'multi'>('multi')
+const customizationMaxSelections = ref<number | null>(null)
+const customizationOptionsText = ref('')
+const customizationFormError = ref('')
+const customizationSubmitting = ref(false)
+const editingCustomizationId = ref<number | null>(null)
 
 function adminHeaders() {
   return {
@@ -585,6 +817,128 @@ async function submitProduct() {
   }
 }
 
+async function refreshCustomizations() {
+  customizationsError.value = ''
+  if (!selectedCustomizationClassId.value) {
+    customizations.value = []
+    return
+  }
+  customizationsLoading.value = true
+  try {
+    const data = await $fetch<
+      { id: number; product_class_id: number; label: string; kind: string; options: string[]; max_selections: number | null }[]
+    >('/api/admin/customization-options', {
+      headers: adminHeaders(),
+      query: { product_class_id: selectedCustomizationClassId.value },
+    })
+    customizations.value = Array.isArray(data) ? data : []
+  } catch (e: any) {
+    customizationsError.value =
+      e?.data?.message || e?.message || 'Failed to load customizations'
+  } finally {
+    customizationsLoading.value = false
+  }
+}
+
+function startEditCustomization(opt: {
+  id: number
+  product_class_id: number
+  label: string
+  kind: string
+  options: string[]
+  max_selections: number | null
+}) {
+  editingCustomizationId.value = opt.id
+  selectedCustomizationClassId.value = opt.product_class_id
+  customizationLabel.value = opt.label
+  customizationKind.value = opt.kind === 'multi' ? 'multi' : 'single'
+  customizationMaxSelections.value = opt.max_selections
+  customizationOptionsText.value = (opt.options || []).join('\n')
+  customizationFormError.value = ''
+}
+
+function resetCustomizationForm() {
+  editingCustomizationId.value = null
+  customizationLabel.value = ''
+  customizationKind.value = 'multi'
+  customizationMaxSelections.value = null
+  customizationOptionsText.value = ''
+  customizationFormError.value = ''
+}
+
+function parseOptionsText(text: string): string[] {
+  return text
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
+
+async function submitCustomization() {
+  customizationFormError.value = ''
+  customizationSubmitting.value = true
+  try {
+    if (!selectedCustomizationClassId.value) {
+      customizationFormError.value = 'Select a product class first'
+      return
+    }
+    const label = customizationLabel.value.trim()
+    if (!label) {
+      customizationFormError.value = 'Label is required'
+      return
+    }
+    const options = parseOptionsText(customizationOptionsText.value)
+    const maxSelections =
+      customizationKind.value === 'multi' ? customizationMaxSelections.value : null
+
+    if (editingCustomizationId.value) {
+      await $fetch(`/api/admin/customization-options/${editingCustomizationId.value}`, {
+        method: 'PATCH',
+        headers: adminHeaders(),
+        body: {
+          label,
+          kind: customizationKind.value,
+          max_selections: maxSelections,
+          options,
+        },
+      })
+    } else {
+      await $fetch('/api/admin/customization-options', {
+        method: 'POST',
+        headers: adminHeaders(),
+        body: {
+          product_class_id: selectedCustomizationClassId.value,
+          label,
+          kind: customizationKind.value,
+          max_selections: maxSelections,
+          options,
+        },
+      })
+    }
+    resetCustomizationForm()
+    await refreshCustomizations()
+  } catch (e: any) {
+    customizationFormError.value =
+      e?.data?.message || e?.message || 'Failed to save customization'
+  } finally {
+    customizationSubmitting.value = false
+  }
+}
+
+async function deleteCustomization(id: number) {
+  if (!confirm('Delete this customization group?')) return
+  try {
+    await $fetch(`/api/admin/customization-options/${id}`, {
+      method: 'DELETE',
+      headers: adminHeaders(),
+    })
+    await refreshCustomizations()
+    resetCustomizationForm()
+  } catch (e: any) {
+    customizationsError.value =
+      e?.data?.message || e?.message || 'Failed to delete'
+  }
+}
+
 async function submitClass() {
   formError.value = ''
   formSubmitting.value = true
@@ -647,16 +1001,27 @@ async function submitPassword() {
     // Default to the first class for convenience; don't let products load failure block dashboard
     if (productClasses.value.length > 0) {
       selectedClassId.value = productClasses.value[0].id
+      selectedCustomizationClassId.value = productClasses.value[0].id
       try {
         await refreshProducts()
       } catch {
         // Products list may be empty; dashboard still shows classes
+      }
+      try {
+        await refreshCustomizations()
+      } catch {
+        // Customizations may be empty
       }
     }
   } else {
     error.value = 'Incorrect password'
   }
 }
+
+watch(selectedCustomizationClassId, (id) => {
+  if (id) refreshCustomizations()
+  else customizations.value = []
+})
 
 // For now, always require the admin password on each page load
 // so we can send it in headers for admin APIs.
