@@ -6,7 +6,7 @@
           <img
             src="/brody-logo.png"
             alt="Brody Country Club logo"
-            class="max-h-24 w-auto object-contain"
+            class="max-h-[15rem] md:max-h-96 w-auto object-contain"
           />
         </div>
       </div>
