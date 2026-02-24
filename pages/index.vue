@@ -226,6 +226,20 @@
       </div>
 
       <aside class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 space-y-3 lg:sticky lg:top-4">
+        <div class="space-y-1.5">
+          <label for="customer-name" class="block text-sm font-medium text-gray-700">
+            Your name
+          </label>
+          <input
+            id="customer-name"
+            v-model="customerName"
+            type="text"
+            placeholder="Enter your name"
+            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            autocomplete="name"
+          />
+        </div>
+
         <div class="flex items-center justify-between gap-3">
           <h2 class="text-base font-semibold text-gray-900 tracking-tight">
             Your tray
@@ -296,7 +310,7 @@
             </div>
           </div>
 
-          <div class="pt-2 border-t border-gray-200 space-y-1">
+          <div class="pt-2 border-t border-gray-200 space-y-2">
             <div class="flex items-center justify-between text-sm">
               <span class="text-gray-600">
                 Total
@@ -305,11 +319,43 @@
                 {{ formatPrice(cartTotal) }}
               </span>
             </div>
-            <p class="text-[11px] text-gray-500">
-              This screen only builds your tray. The next phase will submit the order with your
-              name and show an order number.
+            <p
+              v-if="orderError"
+              class="text-xs text-red-600"
+            >
+              {{ orderError }}
             </p>
+            <button
+              type="button"
+              class="w-full inline-flex items-center justify-center py-3 px-4 rounded-xl bg-emerald-600 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none"
+              :disabled="placeOrderLoading || !customerName.trim() || cartItems.length === 0"
+              @click="placeOrder"
+            >
+              {{ placeOrderLoading ? 'Placing order…' : 'Place order' }}
+            </button>
           </div>
+        </div>
+
+        <div
+          v-if="orderNumber != null"
+          class="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4 space-y-2"
+        >
+          <p class="text-sm font-medium text-emerald-800">
+            Order placed
+          </p>
+          <p class="text-2xl font-bold text-emerald-900 tracking-tight">
+            #{{ orderNumber }}
+          </p>
+          <p class="text-xs text-emerald-700">
+            Show this number when you pick up your order.
+          </p>
+          <button
+            type="button"
+            class="text-xs font-medium text-emerald-700 hover:text-emerald-800 underline"
+            @click="dismissOrderSuccess"
+          >
+            Dismiss
+          </button>
         </div>
       </aside>
     </div>
@@ -368,6 +414,10 @@ const selectedProductId = ref<number | null>(null)
 const selectionByCustomization = ref<Record<number, string[]>>({})
 
 const cartItems = ref<CartItem[]>([])
+const customerName = ref('')
+const orderNumber = ref<number | null>(null)
+const orderError = ref('')
+const placeOrderLoading = ref(false)
 
 const selectedClass = computed(() =>
   classes.value.find((c) => c.id === selectedClassId.value) ?? null,
@@ -489,6 +539,50 @@ function removeFromCart(id: number) {
 
 function clearCart() {
   cartItems.value = []
+  orderError.value = ''
+}
+
+async function placeOrder() {
+  const name = customerName.value.trim()
+  if (!name) {
+    orderError.value = 'Enter your name above.'
+    return
+  }
+  if (cartItems.value.length === 0) {
+    orderError.value = 'Add at least one item to your tray.'
+    return
+  }
+  orderError.value = ''
+  placeOrderLoading.value = true
+  try {
+    const res = await $fetch<{ order_id: number; order_number: number }>('/api/orders', {
+      method: 'POST',
+      body: {
+        customer_name: name,
+        items: cartItems.value.map((item) => ({
+          product_id: item.productId,
+          product_class_id: item.productClassId,
+          quantity: 1,
+          customizations: item.customizations,
+        })),
+      },
+    })
+    orderNumber.value = res.order_number
+    cartItems.value = []
+  } catch (e: any) {
+    const status = e?.statusCode ?? e?.status
+    const message = e?.data?.statusMessage ?? e?.data?.message ?? e?.message ?? 'Failed to place order'
+    orderError.value = message
+    if (status === 409) {
+      // One order per name — keep name, don't clear cart so they can fix and retry
+    }
+  } finally {
+    placeOrderLoading.value = false
+  }
+}
+
+function dismissOrderSuccess() {
+  orderNumber.value = null
 }
 
 onMounted(async () => {

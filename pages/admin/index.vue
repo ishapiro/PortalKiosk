@@ -595,6 +595,167 @@
         </div>
       </div>
     </section>
+
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-semibold text-gray-900 tracking-tight">
+            All orders (debug)
+          </h2>
+          <p class="text-xs text-gray-600">
+            Paginated list of orders for debugging. Newest first.
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <select
+            v-model.number="ordersLimit"
+            class="px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
+            @change="fetchOrders(1)"
+          >
+            <option :value="10">10 per page</option>
+            <option :value="25">25 per page</option>
+            <option :value="50">50 per page</option>
+            <option :value="100">100 per page</option>
+          </select>
+          <button
+            type="button"
+            class="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-brand text-xs font-medium text-white shadow-sm hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-1 focus:ring-offset-white"
+            @click="fetchOrders(ordersPage)"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <div
+        v-if="ordersLoading"
+        class="text-sm text-gray-500"
+      >
+        Loading orders…
+      </div>
+      <div
+        v-else-if="ordersError"
+        class="text-sm text-red-600"
+      >
+        {{ ordersError }}
+      </div>
+      <div
+        v-else
+        class="space-y-4"
+      >
+        <div class="overflow-x-auto -mx-2">
+          <table class="w-full min-w-[32rem] text-sm border-collapse">
+            <thead>
+              <tr class="border-b border-gray-200">
+                <th class="text-left py-2 px-2 font-semibold text-gray-900">
+                  #
+                </th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-900">
+                  Order #
+                </th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-900">
+                  Customer
+                </th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-900">
+                  Status
+                </th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-900">
+                  Created
+                </th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-900">
+                  Items
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="ord in ordersList"
+                :key="ord.id"
+                class="border-b border-gray-100 hover:bg-gray-50"
+              >
+                <td class="py-2 px-2 text-gray-600">
+                  {{ ord.id }}
+                </td>
+                <td class="py-2 px-2 font-medium text-gray-900">
+                  {{ ord.order_number ?? '—' }}
+                </td>
+                <td class="py-2 px-2 text-gray-900">
+                  {{ ord.customer_name }}
+                </td>
+                <td class="py-2 px-2">
+                  <span
+                    class="inline-flex px-1.5 py-0.5 rounded text-xs font-medium"
+                    :class="{
+                      'bg-amber-100 text-amber-800': ord.status === 'new',
+                      'bg-blue-100 text-blue-800': ord.status === 'preparing',
+                      'bg-emerald-100 text-emerald-800': ord.status === 'ready',
+                      'bg-gray-100 text-gray-700': ord.status === 'delivered' || ord.status === 'cancelled',
+                    }"
+                  >
+                    {{ ord.status }}
+                  </span>
+                </td>
+                <td class="py-2 px-2 text-gray-600">
+                  {{ formatOrderDate(ord.created_at) }}
+                </td>
+                <td class="py-2 px-2 text-gray-700">
+                  <ul class="list-disc list-inside space-y-0.5">
+                    <li
+                      v-for="(item, idx) in ord.items"
+                      :key="idx"
+                      class="text-xs"
+                    >
+                      {{ item.quantity }}× {{ item.product_name }}
+                      <span
+                        v-if="item.customizations_json"
+                        class="text-gray-500"
+                      >
+                        ({{ formatCustomizations(item.customizations_json) }})
+                      </span>
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p
+          v-if="ordersList.length === 0"
+          class="text-sm text-gray-500"
+        >
+          No orders yet.
+        </p>
+        <div
+          v-else
+          class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100"
+        >
+          <p class="text-xs text-gray-600">
+            Showing {{ (ordersPage - 1) * ordersLimit + 1 }}–{{ Math.min(ordersPage * ordersLimit, ordersTotal) }} of {{ ordersTotal }}
+          </p>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              class="px-2 py-1.5 rounded border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none"
+              :disabled="ordersPage <= 1"
+              @click="fetchOrders(ordersPage - 1)"
+            >
+              Previous
+            </button>
+            <span class="text-sm text-gray-600">
+              Page {{ ordersPage }} of {{ ordersTotalPages }}
+            </span>
+            <button
+              type="button"
+              class="px-2 py-1.5 rounded border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none"
+              :disabled="ordersPage >= ordersTotalPages"
+              @click="fetchOrders(ordersPage + 1)"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -661,6 +822,27 @@ const customizationOptionsText = ref('')
 const customizationFormError = ref('')
 const customizationSubmitting = ref(false)
 const editingCustomizationId = ref<number | null>(null)
+
+const ordersList = ref<
+  {
+    id: number
+    order_number: number | null
+    customer_name: string
+    status: string
+    created_at: string
+    delivered_at: string | null
+    items: Array<{ product_name: string; quantity: number; customizations_json: string | null }>
+  }[]
+>([])
+const ordersTotal = ref(0)
+const ordersPage = ref(1)
+const ordersLimit = ref(25)
+const ordersLoading = ref(false)
+const ordersError = ref('')
+
+const ordersTotalPages = computed(() =>
+  Math.max(1, Math.ceil(ordersTotal.value / ordersLimit.value)),
+)
 
 function adminHeaders() {
   return {
@@ -814,6 +996,54 @@ async function submitProduct() {
       e?.data?.message || e?.message || 'Failed to save product'
   } finally {
     productSubmitting.value = false
+  }
+}
+
+async function fetchOrders(page: number) {
+  ordersError.value = ''
+  ordersLoading.value = true
+  ordersPage.value = page
+  try {
+    const res = await $fetch<{
+      orders: typeof ordersList.value
+      total: number
+      page: number
+      limit: number
+    }>('/api/admin/orders', {
+      headers: adminHeaders(),
+      query: { page, limit: ordersLimit.value },
+    })
+    ordersList.value = res.orders ?? []
+    ordersTotal.value = res.total ?? 0
+    ordersPage.value = res.page ?? page
+  } catch (e: any) {
+    ordersError.value =
+      e?.data?.message || e?.message || 'Failed to load orders'
+  } finally {
+    ordersLoading.value = false
+  }
+}
+
+function formatOrderDate(iso: string) {
+  if (!iso) return '—'
+  try {
+    const d = new Date(iso)
+    return d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })
+  } catch {
+    return iso
+  }
+}
+
+function formatCustomizations(json: string | null): string {
+  if (!json) return ''
+  try {
+    const o = JSON.parse(json) as Record<string, string[]>
+    return Object.entries(o)
+      .map(([k, v]) => (Array.isArray(v) ? `${k}: ${v.join(', ')}` : ''))
+      .filter(Boolean)
+      .join('; ') || ''
+  } catch {
+    return ''
   }
 }
 
@@ -1012,6 +1242,11 @@ async function submitPassword() {
       } catch {
         // Customizations may be empty
       }
+    }
+    try {
+      await fetchOrders(1)
+    } catch {
+      // Orders list may fail
     }
   } else {
     error.value = 'Incorrect password'
