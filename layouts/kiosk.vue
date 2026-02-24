@@ -72,6 +72,13 @@
             >
               Order processing
             </NuxtLink>
+            <NuxtLink
+              to="/status"
+              class="block w-full text-center px-3 py-2 rounded-xl border border-gray-300 text-sm font-medium text-gray-800 hover:border-brand hover:text-brand transition-colors"
+              @click="showEmployeesModal = false"
+            >
+              Status board
+            </NuxtLink>
           </div>
         </div>
       </div>
