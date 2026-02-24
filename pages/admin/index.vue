@@ -48,13 +48,23 @@
     class="admin-page max-w-4xl mx-auto mt-8 px-4 space-y-4"
   >
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-3">
-      <h1 class="text-xl font-semibold text-gray-900 tracking-tight">
-        Admin dashboard
-      </h1>
-      <p class="text-sm text-gray-600 leading-relaxed">
-        Configure product classes, individual items, customizations, and station behavior.
-        This dashboard will grow into the control center for your kiosk experience.
-      </p>
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="space-y-1">
+          <h1 class="text-xl font-semibold text-gray-900 tracking-tight">
+            Admin dashboard
+          </h1>
+          <p class="text-sm text-gray-600 leading-relaxed">
+            Configure product classes, individual items, customizations, and station behavior.
+            This dashboard will grow into the control center for your kiosk experience.
+          </p>
+        </div>
+        <NuxtLink
+          to="/"
+          class="inline-flex items-center justify-center px-3 py-2 rounded-lg border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Home
+        </NuxtLink>
+      </div>
     </div>
 
     <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
@@ -177,6 +187,134 @@
                 type="button"
                 class="text-xs text-gray-500 hover:text-gray-700"
                 @click="resetForm"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-semibold text-gray-900 tracking-tight">
+            Employees
+          </h2>
+          <p class="text-xs text-gray-600">
+            Manage the list of employees who can work on orders at the station.
+          </p>
+        </div>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-brand text-xs font-medium text-white shadow-sm hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-1 focus:ring-offset-white"
+          @click="refreshEmployees"
+        >
+          Refresh
+        </button>
+      </div>
+
+      <div v-if="employeesLoading" class="text-sm text-gray-500">
+        Loading employees…
+      </div>
+      <div
+        v-else-if="employeesError"
+        class="text-sm text-red-600"
+      >
+        {{ employeesError }}
+      </div>
+      <div
+        v-else
+        class="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)]"
+      >
+        <div class="space-y-2">
+          <ul
+            v-if="employees.length"
+            class="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden bg-gray-50"
+          >
+            <li
+              v-for="emp in employees"
+              :key="emp.id"
+              class="px-3 py-2.5 flex items-center justify-between gap-3"
+            >
+              <div>
+                <p class="text-sm font-medium text-gray-900">
+                  {{ emp.name }}
+                </p>
+                <p class="text-xs" :class="emp.active ? 'text-emerald-700' : 'text-gray-500'">
+                  {{ emp.active ? 'Active' : 'Inactive' }}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="text-xs font-medium text-brand hover:text-brand-light"
+                @click="startEditEmployee(emp)"
+              >
+                Edit
+              </button>
+            </li>
+          </ul>
+          <p
+            v-else
+            class="text-sm text-gray-500"
+          >
+            No employees yet. Add at least one so the station can assign orders.
+          </p>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="text-sm font-semibold text-gray-900">
+            {{ editingEmployeeId ? 'Edit employee' : 'Add employee' }}
+          </h3>
+          <form
+            class="space-y-3"
+            @submit.prevent="submitEmployee"
+          >
+            <div class="space-y-1.5">
+              <label class="block text-xs font-medium text-gray-700 uppercase tracking-wide">
+                Name
+              </label>
+              <input
+                v-model="employeeName"
+                type="text"
+                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
+                placeholder="Employee name"
+              />
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                id="employee-active"
+                v-model="employeeActive"
+                type="checkbox"
+                class="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+              />
+              <label
+                for="employee-active"
+                class="text-xs text-gray-700"
+              >
+                Active
+              </label>
+            </div>
+            <p
+              v-if="employeeFormError"
+              class="text-xs text-red-600"
+            >
+              {{ employeeFormError }}
+            </p>
+            <div class="flex items-center gap-3">
+              <button
+                type="submit"
+                class="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-brand text-xs font-medium text-white shadow-sm hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-1 focus:ring-offset-white disabled:opacity-60"
+                :disabled="employeeSubmitting"
+              >
+                {{ editingEmployeeId ? 'Save employee' : 'Add employee' }}
+              </button>
+              <button
+                v-if="editingEmployeeId"
+                type="button"
+                class="text-xs text-gray-500 hover:text-gray-700"
+                @click="resetEmployeeForm"
               >
                 Cancel
               </button>
@@ -665,6 +803,9 @@
                 <th class="text-left py-2 px-2 font-semibold text-gray-900">
                   Items
                 </th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-900">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -682,7 +823,7 @@
                 <td class="py-2 px-2 text-gray-900">
                   {{ ord.customer_name }}
                 </td>
-                <td class="py-2 px-2">
+                <td class="py-2 px-2 space-y-1">
                   <span
                     class="inline-flex px-1.5 py-0.5 rounded text-xs font-medium"
                     :class="{
@@ -694,6 +835,38 @@
                   >
                     {{ ord.status }}
                   </span>
+                  <div class="flex items-center gap-1">
+                    <select
+                      v-model="orderStatusEdits[ord.id]"
+                      class="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] text-gray-800 focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand bg-white"
+                    >
+                      <option :value="ord.status">
+                        {{ ord.status }}
+                      </option>
+                      <option value="new">
+                        new
+                      </option>
+                      <option value="preparing">
+                        preparing
+                      </option>
+                      <option value="ready">
+                        ready
+                      </option>
+                      <option value="delivered">
+                        delivered
+                      </option>
+                      <option value="cancelled">
+                        cancelled
+                      </option>
+                    </select>
+                    <button
+                      type="button"
+                      class="px-1.5 py-0.5 rounded border border-gray-300 text-[11px] text-gray-700 hover:bg-gray-50"
+                      @click="changeOrderStatus(ord)"
+                    >
+                      Set
+                    </button>
+                  </div>
                 </td>
                 <td class="py-2 px-2 text-gray-600">
                   {{ formatOrderDate(ord.created_at) }}
@@ -714,6 +887,16 @@
                       </span>
                     </li>
                   </ul>
+                </td>
+                <td class="py-2 px-2">
+                  <button
+                    v-if="ord.status === 'preparing'"
+                    type="button"
+                    class="inline-flex items-center justify-center px-2.5 py-1.5 rounded-lg border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                    @click="unassignOrder(ord.id)"
+                  >
+                    Unassign
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -840,9 +1023,20 @@ const ordersLimit = ref(25)
 const ordersLoading = ref(false)
 const ordersError = ref('')
 
+const orderStatusEdits = ref<Record<number, string>>({})
+
 const ordersTotalPages = computed(() =>
   Math.max(1, Math.ceil(ordersTotal.value / ordersLimit.value)),
 )
+
+const employees = ref<{ id: number; name: string; active: number }[]>([])
+const employeesLoading = ref(false)
+const employeesError = ref('')
+const employeeName = ref('')
+const employeeActive = ref(true)
+const editingEmployeeId = ref<number | null>(null)
+const employeeFormError = ref('')
+const employeeSubmitting = ref(false)
 
 function adminHeaders() {
   return {
@@ -1021,6 +1215,109 @@ async function fetchOrders(page: number) {
       e?.data?.message || e?.message || 'Failed to load orders'
   } finally {
     ordersLoading.value = false
+  }
+}
+
+async function changeOrderStatus(ord: {
+  id: number
+  status: string
+}) {
+  const next = (orderStatusEdits.value[ord.id] || ord.status || '').trim()
+  if (!next || next === ord.status) return
+
+  try {
+    await $fetch(`/api/admin/orders/${ord.id}`, {
+      method: 'PATCH',
+      headers: adminHeaders(),
+      body: { status: next },
+    })
+    await fetchOrders(ordersPage.value)
+  } catch (e: any) {
+    ordersError.value =
+      e?.data?.message || e?.message || 'Failed to change order status'
+  }
+}
+
+async function unassignOrder(id: number) {
+  try {
+    await $fetch(`/api/admin/orders/${id}`, {
+      method: 'PATCH',
+      headers: adminHeaders(),
+      body: { action: 'unassign' },
+    })
+    await fetchOrders(ordersPage.value)
+  } catch (e: any) {
+    ordersError.value =
+      e?.data?.message || e?.message || 'Failed to unassign order'
+  }
+}
+
+async function refreshEmployees() {
+  employeesError.value = ''
+  employeesLoading.value = true
+  try {
+    const data = await $fetch<{ id: number; name: string; active: number }[]>(
+      '/api/admin/employees',
+      { headers: adminHeaders() },
+    )
+    employees.value = Array.isArray(data) ? data : []
+  } catch (e: any) {
+    employeesError.value = e?.data?.message || e?.message || 'Failed to load employees'
+  } finally {
+    employeesLoading.value = false
+  }
+}
+
+function startEditEmployee(emp: { id: number; name: string; active: number }) {
+  editingEmployeeId.value = emp.id
+  employeeName.value = emp.name
+  employeeActive.value = !!emp.active
+  employeeFormError.value = ''
+}
+
+function resetEmployeeForm() {
+  editingEmployeeId.value = null
+  employeeName.value = ''
+  employeeActive.value = true
+  employeeFormError.value = ''
+}
+
+async function submitEmployee() {
+  employeeFormError.value = ''
+  employeeSubmitting.value = true
+  try {
+    const name = employeeName.value.trim()
+    if (!name) {
+      employeeFormError.value = 'Name is required'
+      return
+    }
+
+    const body = {
+      name,
+      active: employeeActive.value,
+    }
+
+    if (editingEmployeeId.value) {
+      await $fetch(`/api/admin/employees/${editingEmployeeId.value}`, {
+        method: 'PATCH',
+        headers: adminHeaders(),
+        body,
+      })
+    } else {
+      await $fetch('/api/admin/employees', {
+        method: 'POST',
+        headers: adminHeaders(),
+        body,
+      })
+    }
+
+    resetEmployeeForm()
+    await refreshEmployees()
+  } catch (e: any) {
+    employeeFormError.value =
+      e?.data?.message || e?.message || 'Failed to save employee'
+  } finally {
+    employeeSubmitting.value = false
   }
 }
 
@@ -1247,6 +1544,11 @@ async function submitPassword() {
       await fetchOrders(1)
     } catch {
       // Orders list may fail
+    }
+    try {
+      await refreshEmployees()
+    } catch {
+      // Employees list may fail
     }
   } else {
     error.value = 'Incorrect password'

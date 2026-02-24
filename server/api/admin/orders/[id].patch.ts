@@ -1,0 +1,77 @@
+import { requireAdmin } from '~/server/utils/adminAuth'
+
+interface AdminUpdateOrderBody {
+  action?: 'unassign'
+  status?: string
+}
+
+export default defineEventHandler(async (event) => {
+  requireAdmin(event)
+
+  const db = event.context.cloudflare?.env?.DB as D1Database | undefined
+  if (!db) {
+    throw createError({ statusCode: 500, statusMessage: 'Database not configured' })
+  }
+
+  const id = Number(getRouterParam(event, 'id'))
+  if (!Number.isFinite(id)) {
+    throw createError({ statusCode: 400, statusMessage: 'Invalid id' })
+  }
+
+  const body = await readBody<AdminUpdateOrderBody>(event)
+  const action = body?.action
+  const nextStatus = body?.status?.trim()
+
+  if (!action && !nextStatus) {
+    throw createError({ statusCode: 400, statusMessage: 'No update specified' })
+  }
+
+  const current = await db
+    .prepare('SELECT status FROM orders WHERE id = ?')
+    .bind(id)
+    .first<{ status: string }>()
+
+  if (!current) {
+    throw createError({ statusCode: 404, statusMessage: 'Order not found' })
+  }
+
+  let sql: string
+  const params: any[] = []
+
+  if (nextStatus) {
+    // Direct status change from admin: set status and clear assignment
+    sql =
+      "UPDATE orders SET status = ?, preparing_employee_id = NULL, updated_at = datetime('now') WHERE id = ? RETURNING id, order_number, customer_name, status, created_at, delivered_at"
+    params.push(nextStatus, id)
+  } else if (action === 'unassign') {
+    // Only clear assignment; if currently preparing, also revert to new
+    sql =
+      "UPDATE orders SET preparing_employee_id = NULL, updated_at = datetime('now') WHERE id = ? RETURNING id, order_number, customer_name, status, created_at, delivered_at"
+    params.push(id)
+
+    if (current.status === 'preparing') {
+      sql =
+        "UPDATE orders SET status = 'new', preparing_employee_id = NULL, updated_at = datetime('now') WHERE id = ? RETURNING id, order_number, customer_name, status, created_at, delivered_at"
+    }
+  } else {
+    throw createError({ statusCode: 400, statusMessage: 'Unsupported action' })
+  }
+
+  const { results } = await db.prepare(sql).bind(...params).all()
+  const row =
+    (results as {
+      id: number
+      order_number: number | null
+      customer_name: string
+      status: string
+      created_at: string
+      delivered_at: string | null
+    }[])?.[0]
+
+  if (!row) {
+    throw createError({ statusCode: 404, statusMessage: 'Order not found after update' })
+  }
+
+  return row
+})
+
