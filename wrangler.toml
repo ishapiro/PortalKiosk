@@ -3,11 +3,11 @@ main = ".output/server/index.mjs"
 compatibility_date = "2024-09-19"
 compatibility_flags = ["nodejs_compat"]
 
-# Custom domain: brodycountryclub.cogitations.com
-# Add your zone_id and route after adding the domain in Cloudflare DNS.
-# routes = [
-#   { pattern = "brodycountryclub.cogitations.com", zone_name = "cogitations.com" }
-# ]
+# Custom domain: countryclub.cogitations.com
+# Ensure `cogitations.com` is a Cloudflare zone and DNS has a proxied record for `countryclub`.
+routes = [
+  { pattern = "countryclub.cogitations.com/*", zone_name = "cogitations.com" }
+]
 
 # Publish to *.workers.dev; uncomment and set routes for custom domain.
 workers_dev = true
