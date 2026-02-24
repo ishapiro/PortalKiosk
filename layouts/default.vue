@@ -1,12 +1,12 @@
 <template>
   <div class="layout-default min-h-screen bg-gray-100">
-    <div class="pt-6">
+    <div class="pt-2">
       <div class="flex justify-center">
         <div class="flex flex-col items-center gap-2">
           <img
             src="/brody-logo.png"
             alt="Brody Country Club logo"
-            class="max-h-[15rem] md:max-h-96 w-auto object-contain"
+            class="max-h-[15rem] md:max-h-56 w-auto object-contain"
           />
         </div>
       </div>
