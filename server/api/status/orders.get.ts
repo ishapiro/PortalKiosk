@@ -30,10 +30,6 @@ export default defineEventHandler(async (event) => {
       created_at: string
     }[]) ?? []
 
-  if (orderRows.length === 0) {
-    return { orders: [] }
-  }
-
   const orderIds = orderRows.map((o) => o.id)
   const placeholders = orderIds.map(() => '?').join(',')
 
@@ -95,6 +91,20 @@ export default defineEventHandler(async (event) => {
     items: itemsByOrderId.get(o.id) ?? [],
   }))
 
-  return { orders }
+  const totalRow = await db
+    .prepare('SELECT COUNT(*) AS total FROM orders')
+    .first<{ total: number }>()
+
+  const deliveredRow = await db
+    .prepare("SELECT COUNT(*) AS delivered FROM orders WHERE status = 'delivered'")
+    .first<{ delivered: number }>()
+
+  return {
+    orders,
+    totals: {
+      total_orders: Number(totalRow?.total ?? 0),
+      total_delivered: Number(deliveredRow?.delivered ?? 0),
+    },
+  }
 })
 

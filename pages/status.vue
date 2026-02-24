@@ -1,12 +1,12 @@
 <template>
-  <div class="status-page h-screen flex flex-col bg-slate-950 text-white overflow-hidden">
-    <header class="pt-6 pb-4 border-b border-slate-800">
+  <div class="status-page min-h-screen lg:h-screen flex flex-col bg-slate-950 text-white lg:overflow-hidden">
+    <header class="pt-4 pb-3 border-b border-slate-800">
       <div class="max-w-6xl mx-auto px-4 flex items-center justify-between gap-4">
         <div class="flex items-center gap-4">
           <img
             src="/brody-logo.png"
             alt="Brody Country Club logo"
-            class="hidden sm:block h-14 w-auto object-contain drop-shadow-lg"
+            class="h-10 w-auto object-contain drop-shadow-lg"
           />
           <div>
             <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300 bg-clip-text text-transparent">
@@ -28,8 +28,8 @@
       </div>
     </header>
 
-    <main class="flex-1 py-4 overflow-hidden">
-      <div class="max-w-6xl mx-auto px-4 space-y-4 h-full overflow-hidden">
+    <main class="flex-1 py-4 lg:overflow-hidden overflow-auto">
+      <div class="max-w-6xl mx-auto px-4 space-y-4 lg:h-full lg:overflow-hidden">
         <section
           v-if="!authed"
           class="flex-1 flex items-center justify-center"
@@ -108,6 +108,10 @@
                   <span class="h-2 w-2 rounded-full bg-emerald-300 animate-pulse" />
                   Ready: <strong>{{ totals.ready }}</strong>
                 </span>
+                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-700/40 border border-slate-500 text-slate-100">
+                  <span class="h-2 w-2 rounded-full bg-slate-300" />
+                  Total delivered: <strong>{{ totals.delivered }}</strong>
+                </span>
               </div>
             </div>
             <div class="text-right text-xs text-slate-400">
@@ -136,25 +140,11 @@
         </section>
 
         <section
-          v-else-if="authed && !orders.length"
-          class="flex-1 flex items-center justify-center"
-        >
-          <div class="text-center space-y-3">
-            <p class="text-xl font-semibold text-slate-100">
-              No orders in the queue (yet!)
-            </p>
-            <p class="text-sm text-slate-400">
-              Place an order at the kiosk and watch it appear here in real time.
-            </p>
-          </div>
-        </section>
-
-        <section
           v-else-if="authed"
-          class="grid gap-4 lg:grid-cols-3 h-full"
+          class="grid gap-4 grid-cols-1 lg:grid-cols-3 lg:h-full"
         >
           <!-- New -->
-          <div class="rounded-3xl border border-amber-500/40 bg-gradient-to-b from-amber-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-4 space-y-3 shadow-lg shadow-amber-900/40 flex flex-col h-full">
+          <div class="rounded-3xl border border-amber-500/40 bg-gradient-to-b from-amber-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-4 space-y-3 shadow-lg shadow-amber-900/40 flex flex-col lg:h-full">
             <header class="flex items-center justify-between gap-3">
               <div>
                 <h2 class="text-sm font-semibold text-amber-100 tracking-tight">
@@ -168,7 +158,7 @@
                 {{ grouped.new.length }}
               </span>
             </header>
-            <ul class="space-y-2 flex-1 overflow-hidden pr-1">
+            <ul class="space-y-2 lg:flex-1 lg:overflow-hidden pr-1">
               <li
                 v-for="ord in grouped.new"
                 :key="ord.id"
@@ -196,7 +186,7 @@
           </div>
 
           <!-- Preparing -->
-          <div class="rounded-3xl border border-sky-500/40 bg-gradient-to-b from-sky-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-4 space-y-3 shadow-lg shadow-sky-900/40 flex flex-col h-full">
+          <div class="rounded-3xl border border-sky-500/40 bg-gradient-to-b from-sky-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-4 space-y-3 shadow-lg shadow-sky-900/40 flex flex-col lg:h-full">
             <header class="flex items-center justify-between gap-3">
               <div>
                 <h2 class="text-sm font-semibold text-sky-100 tracking-tight">
@@ -210,7 +200,7 @@
                 {{ grouped.preparing.length }}
               </span>
             </header>
-            <ul class="space-y-2 flex-1 overflow-hidden pr-1">
+            <ul class="space-y-2 lg:flex-1 lg:overflow-hidden pr-1">
               <li
                 v-for="ord in grouped.preparing"
                 :key="ord.id"
@@ -241,7 +231,7 @@
           </div>
 
           <!-- Ready -->
-          <div class="rounded-3xl border border-emerald-500/40 bg-gradient-to-b from-emerald-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-4 space-y-3 shadow-lg shadow-emerald-900/40 flex flex-col h-full">
+          <div class="rounded-3xl border border-emerald-500/40 bg-gradient-to-b from-emerald-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-4 space-y-3 shadow-lg shadow-emerald-900/40 flex flex-col lg:h-full">
             <header class="flex items-center justify-between gap-3">
               <div>
                 <h2 class="text-sm font-semibold text-emerald-100 tracking-tight">
@@ -255,7 +245,7 @@
                 {{ grouped.ready.length }}
               </span>
             </header>
-            <ul class="space-y-2 flex-1 overflow-hidden pr-1">
+            <ul class="space-y-2 lg:flex-1 lg:overflow-hidden pr-1">
               <li
                 v-for="ord in grouped.ready"
                 :key="ord.id"
@@ -289,6 +279,12 @@
 </template>
 
 <script setup lang="ts">
+declare const definePageMeta: (meta: any) => void
+
+definePageMeta({
+  layout: false,
+})
+
 interface StatusOrderItem {
   product_name: string
   quantity: number
@@ -315,6 +311,9 @@ const authed = ref(false)
 
 const router = useRouter()
 
+const totalOrders = ref(0)
+const totalDelivered = ref(0)
+
 const grouped = computed(() => {
   const byStatus = {
     new: [] as StatusOrder[],
@@ -331,12 +330,12 @@ const grouped = computed(() => {
 
 const totals = computed(() => {
   const g = grouped.value
-  const total = g.new.length + g.preparing.length + g.ready.length
   return {
-    total,
+    total: totalOrders.value,
     new: g.new.length,
     preparing: g.preparing.length,
     ready: g.ready.length,
+    delivered: totalDelivered.value,
   }
 })
 
@@ -358,10 +357,15 @@ async function fetchStatusOrders() {
       headers['x-admin-password'] = password.value
     }
 
-    const data = await $fetch<{ orders: StatusOrder[] }>('/api/status/orders', {
+    const data = await $fetch<{
+      orders: StatusOrder[]
+      totals?: { total_orders: number; total_delivered: number }
+    }>('/api/status/orders', {
       headers,
     })
     orders.value = data.orders ?? []
+    totalOrders.value = data.totals?.total_orders ?? orders.value.length
+    totalDelivered.value = data.totals?.total_delivered ?? 0
     lastUpdated.value = new Date()
   } catch {
     // keep previous data if fetch fails

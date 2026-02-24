@@ -1,18 +1,35 @@
 <template>
   <div class="kiosk-page min-h-screen max-w-5xl mx-auto mt-4 mb-6 px-3 sm:px-4 space-y-4">
     <div
-      class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-emerald-100 p-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+      class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-emerald-100 p-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
     >
-      <div class="space-y-1">
-        <h1 class="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">
-          Build your order
-        </h1>
-        <p class="text-sm text-gray-600 leading-relaxed">
-          Choose one parfait and one beverage. Tap a category, pick an item, then customize it
-          before adding to your tray.
-        </p>
+      <div class="space-y-3 max-w-xl">
+        <div class="space-y-1">
+          <h1 class="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">
+            Build your order
+          </h1>
+          <p class="text-sm text-gray-600 leading-relaxed">
+            Start by entering your name, then choose one parfait and one beverage. Tap a category, pick an item, then customize it before adding to your tray.
+          </p>
+        </div>
+        <div class="space-y-1.5">
+          <label
+            for="customer-name-top"
+            class="block text-xs font-medium text-gray-700 uppercase tracking-wide"
+          >
+            Your name
+          </label>
+          <input
+            id="customer-name-top"
+            v-model="customerName"
+            type="text"
+            placeholder="Enter your name"
+            class="w-full max-w-xs px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            autocomplete="name"
+          />
+        </div>
       </div>
-      <div class="mt-2 md:mt-0 flex items-center gap-3 text-xs sm:text-sm">
+      <div class="mt-1 md:mt-0 flex items-center gap-3 text-xs sm:text-sm">
         <div class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 min-w-[8rem]">
           <p class="font-medium text-gray-900">
             Your tray
@@ -226,20 +243,6 @@
       </div>
 
       <aside class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 space-y-3 lg:sticky lg:top-4">
-        <div class="space-y-1.5">
-          <label for="customer-name" class="block text-sm font-medium text-gray-700">
-            Your name
-          </label>
-          <input
-            id="customer-name"
-            v-model="customerName"
-            type="text"
-            placeholder="Enter your name"
-            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            autocomplete="name"
-          />
-        </div>
-
         <div class="flex items-center justify-between gap-3">
           <h2 class="text-base font-semibold text-gray-900 tracking-tight">
             Your tray
