@@ -95,7 +95,7 @@
                   {{ totals.total }}
                 </span>
               </div>
-              <div class="flex items-center gap-3 text-xs sm:text-sm">
+              <div class="flex flex-wrap items-center gap-2 text-[11px] sm:text-sm">
                 <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/15 border border-amber-400/50 text-amber-200">
                   <span class="h-2 w-2 rounded-full bg-amber-300 animate-pulse" />
                   New: <strong>{{ totals.new }}</strong>
