@@ -19,8 +19,8 @@
             for="customer-name-top"
             class="block text-xs font-medium text-gray-700 uppercase tracking-wide"
           >
-            Your name (required) 
-          </label>
+            Your name (required) / השם שלך
+        </label>
           <input
             id="customer-name-top"
             v-model="customerName"
@@ -141,7 +141,7 @@
       <div class="space-y-4">
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 space-y-3">
           <h2 class="text-base font-semibold text-gray-900 tracking-tight">
-            2. Start with a parfait or a drink
+            2. Start with a parfait or a drink / תתחילו עם כוס או שתיה
           </h2>
           <p class="text-xs text-gray-500">
             Choose a parfait or a drink to start your order.
@@ -195,7 +195,7 @@
         >
           <div class="flex items-center justify-between gap-3">
             <h2 class="text-base font-semibold text-gray-900 tracking-tight">
-              3. Pick an base
+              3. Pick a base / בחרו בסיס
             </h2>
             <p class="text-xs text-gray-500">
               Tap an item to customize it.
@@ -249,7 +249,7 @@
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 space-y-3">
           <div class="flex items-center justify-between gap-3">
             <h2 class="text-base font-semibold text-gray-900 tracking-tight">
-              4. Customize & add to tray
+              4. Customize & add to tray / הוסיפו תוספות והוסיפו למגש
             </h2>
             <p class="text-xs text-gray-500">
               Options change based on the item you pick.
@@ -313,7 +313,7 @@
                   class="px-3 py-2 rounded-full border text-sm sm:text-xs font-medium transition bg-white"
                   :class="isOptionSelected(group.id, option)
                     ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
-                    : 'border-gray-200 text-gray-700 hover:border-emerald-300 hover:bg-emerald-50/60'"
+                    : 'border-gray-200 text-gray-700'"
                   @click="toggleOption(group, option)"
                 >
                   {{ option }}
