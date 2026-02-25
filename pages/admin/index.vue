@@ -1039,14 +1039,23 @@
                   </ul>
                 </td>
                 <td class="py-2 px-2">
-                  <button
-                    v-if="ord.status === 'preparing'"
-                    type="button"
-                    class="inline-flex items-center justify-center px-2.5 py-1.5 rounded-lg border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                    @click="unassignOrder(ord.id)"
-                  >
-                    Unassign
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <button
+                      v-if="ord.status === 'preparing'"
+                      type="button"
+                      class="inline-flex items-center justify-center px-2.5 py-1.5 rounded-lg border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                      @click="unassignOrder(ord.id)"
+                    >
+                      Unassign
+                    </button>
+                    <button
+                      type="button"
+                      class="inline-flex items-center justify-center px-2.5 py-1.5 rounded-lg border border-red-200 bg-red-50 text-xs font-medium text-red-700 hover:bg-red-600 hover:text-white"
+                      @click="deleteOrder(ord.id)"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -1425,6 +1434,20 @@ async function unassignOrder(id: number) {
   } catch (e: any) {
     ordersError.value =
       e?.data?.message || e?.message || 'Failed to unassign order'
+  }
+}
+
+async function deleteOrder(id: number) {
+  if (!confirm('Delete this order permanently?')) return
+  try {
+    await $fetch(`/api/admin/orders/${id}`, {
+      method: 'DELETE',
+      headers: adminHeaders(),
+    })
+    await fetchOrders(ordersPage.value)
+  } catch (e: any) {
+    ordersError.value =
+      e?.data?.message || e?.message || 'Failed to delete order'
   }
 }
 

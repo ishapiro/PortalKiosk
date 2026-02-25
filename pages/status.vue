@@ -1,7 +1,7 @@
 <template>
-  <div class="status-page min-h-screen lg:h-screen flex flex-col bg-slate-950 text-white lg:overflow-hidden">
-    <header class="pt-4 pb-3 border-b border-slate-800">
-      <div class="max-w-6xl mx-auto px-4 flex items-center justify-between gap-4">
+  <div class="status-page h-screen flex flex-col bg-slate-950 text-white overflow-hidden">
+    <header class="py-3 border-b border-slate-800">
+      <div class="max-w-6xl mx-auto px-4 flex items-center justify-between gap-3">
         <div class="flex items-center gap-4">
           <img
             src="/brody-logo.png"
@@ -9,10 +9,10 @@
             class="h-10 w-auto object-contain drop-shadow-lg"
           />
           <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300 bg-clip-text text-transparent">
+            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-300 via-cyan-300 to-sky-300 bg-clip-text text-transparent">
               Order Status Board
             </h1>
-            <p class="text-xs sm:text-sm text-slate-300/80">
+            <p class="text-[11px] sm:text-xs text-slate-300/80">
               Watch your order glide from placed → preparing → ready for pickup.
             </p>
           </div>
@@ -28,8 +28,8 @@
       </div>
     </header>
 
-    <main class="flex-1 py-4 lg:overflow-hidden overflow-auto">
-      <div class="max-w-6xl mx-auto px-4 space-y-4 lg:h-full lg:overflow-hidden">
+    <main class="flex-1 py-3 overflow-hidden">
+      <div class="max-w-6xl mx-auto px-4 space-y-3 h-full">
         <section
           v-if="!authed"
           class="flex-1 flex items-center justify-center"
@@ -85,7 +85,7 @@
 
         <section
           v-else
-          class="rounded-3xl border border-slate-800/80 bg-gradient-to-r from-slate-900/70 via-slate-900/40 to-slate-900/70 px-4 sm:px-6 py-4 shadow-xl shadow-black/40"
+          class="rounded-3xl border border-slate-800/80 bg-gradient-to-r from-slate-900/70 via-slate-900/40 to-slate-900/70 px-3 sm:px-5 py-3 shadow-xl shadow-black/40"
         >
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex flex-wrap items-center gap-4">
@@ -141,10 +141,10 @@
 
         <section
           v-else-if="authed"
-          class="grid gap-4 grid-cols-1 lg:grid-cols-3 lg:h-full"
+          class="grid gap-3 grid-cols-1 lg:grid-cols-3 h-[calc(100%-8rem)]"
         >
           <!-- New -->
-          <div class="rounded-3xl border border-amber-500/40 bg-gradient-to-b from-amber-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-4 space-y-3 shadow-lg shadow-amber-900/40 flex flex-col lg:h-full">
+          <div class="rounded-3xl border border-amber-500/40 bg-gradient-to-b from-amber-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-3 space-y-2 shadow-lg shadow-amber-900/40 flex flex-col h-full">
             <header class="flex items-center justify-between gap-3">
               <div>
                 <h2 class="text-sm font-semibold text-amber-100 tracking-tight">
@@ -158,11 +158,11 @@
                 {{ grouped.new.length }}
               </span>
             </header>
-            <ul class="space-y-2 lg:flex-1 lg:overflow-hidden pr-1">
+            <ul class="space-y-1.5 pr-1">
               <li
                 v-for="ord in grouped.new"
                 :key="ord.id"
-                class="group rounded-2xl bg-slate-950/50 border border-slate-800/70 px-3 py-2.5 flex items-center justify-between gap-3 transition transform hover:-translate-y-0.5 hover:border-amber-400/80 hover:bg-slate-900/80"
+                class="group rounded-2xl bg-slate-950/50 border border-slate-800/70 px-3 py-2 flex items-center justify-between gap-3 transition transform hover:-translate-y-0.5 hover:border-amber-400/80 hover:bg-slate-900/80"
               >
                 <div class="space-y-0.5">
                   <p class="text-sm font-semibold text-slate-50">
@@ -186,7 +186,7 @@
           </div>
 
           <!-- Preparing -->
-          <div class="rounded-3xl border border-sky-500/40 bg-gradient-to-b from-sky-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-4 space-y-3 shadow-lg shadow-sky-900/40 flex flex-col lg:h-full">
+          <div class="rounded-3xl border border-sky-500/40 bg-gradient-to-b from-sky-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-3 space-y-2 shadow-lg shadow-sky-900/40 flex flex-col h-full">
             <header class="flex items-center justify-between gap-3">
               <div>
                 <h2 class="text-sm font-semibold text-sky-100 tracking-tight">
@@ -200,11 +200,11 @@
                 {{ grouped.preparing.length }}
               </span>
             </header>
-            <ul class="space-y-2 lg:flex-1 lg:overflow-hidden pr-1">
+            <ul class="space-y-1.5 pr-1">
               <li
                 v-for="ord in grouped.preparing"
                 :key="ord.id"
-                class="group rounded-2xl bg-slate-950/50 border border-slate-800/70 px-3 py-2.5 flex items-center justify-between gap-3 transition transform hover:-translate-y-0.5 hover:border-sky-400/80 hover:bg-slate-900/80"
+                class="group rounded-2xl bg-slate-950/50 border border-slate-800/70 px-3 py-2 flex items-center justify-between gap-3 transition transform hover:-translate-y-0.5 hover:border-sky-400/80 hover:bg-slate-900/80"
               >
                 <div>
                   <p class="text-sm font-semibold text-slate-50">
@@ -231,7 +231,7 @@
           </div>
 
           <!-- Ready -->
-          <div class="rounded-3xl border border-emerald-500/40 bg-gradient-to-b from-emerald-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-4 space-y-3 shadow-lg shadow-emerald-900/40 flex flex-col lg:h-full">
+          <div class="rounded-3xl border border-emerald-500/40 bg-gradient-to-b from-emerald-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-3 space-y-2 shadow-lg shadow-emerald-900/40 flex flex-col h-full">
             <header class="flex items-center justify-between gap-3">
               <div>
                 <h2 class="text-sm font-semibold text-emerald-100 tracking-tight">
@@ -245,11 +245,11 @@
                 {{ grouped.ready.length }}
               </span>
             </header>
-            <ul class="space-y-2 lg:flex-1 lg:overflow-hidden pr-1">
+            <ul class="space-y-1.5 pr-1">
               <li
                 v-for="ord in grouped.ready"
                 :key="ord.id"
-                class="group rounded-2xl bg-slate-950/50 border border-slate-800/70 px-3 py-2.5 flex items-center justify-between gap-3 transition transform hover:-translate-y-0.5 hover:border-emerald-400/80 hover:bg-slate-900/80"
+                class="group rounded-2xl bg-slate-950/50 border border-slate-800/70 px-3 py-2 flex items-center justify-between gap-3 transition transform hover:-translate-y-0.5 hover:border-emerald-400/80 hover:bg-slate-900/80"
               >
                 <div>
                   <p class="text-sm font-semibold text-slate-50">
