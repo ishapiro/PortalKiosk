@@ -193,11 +193,11 @@
         <div
           class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 space-y-3 min-h-[14rem]"
         >
-          <div class="flex items-center justify-between gap-3">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3">
             <h2 class="text-base font-semibold text-gray-900 tracking-tight">
               3. Pick a base / בחרו בסיס
             </h2>
-            <p class="text-xs text-gray-500">
+            <p class="mt-1 text-xs text-gray-500">
               Tap an item to customize it.
             </p>
           </div>
@@ -247,7 +247,7 @@
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 space-y-3">
-          <div class="flex items-center justify-between gap-3">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3">
             <h2 class="text-base font-semibold text-gray-900 tracking-tight">
               4. Customize & add to tray / הוסיפו תוספות והוסיפו למגש
             </h2>
@@ -324,7 +324,7 @@
             <div class="pt-2 flex items-center justify-between gap-3">
               <button
                 type="button"
-                class="text-xs text-gray-500 hover:text-gray-700"
+                class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-medium text-gray-600 hover:text-gray-800 hover:border-gray-400 bg-white"
                 @click="clearSelections"
               >
                 Clear selections / נקה הגדרות
@@ -362,7 +362,8 @@
           v-if="!cartItems.length"
           class="text-sm text-gray-500"
         >
-          No items yet. Add a parfait or a beverage to your tray.
+          No items yet / אין פריטים במגש
+          Add a parfait or a beverage to your tray.
         </div>
         <div
           v-else
