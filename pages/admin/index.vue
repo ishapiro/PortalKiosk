@@ -116,6 +116,12 @@
                 <p class="text-xs text-gray-500">
                   Sort order: {{ cls.sort_order }}
                 </p>
+                <p class="text-xs text-gray-500">
+                  Type:
+                  <span class="font-medium text-gray-700">
+                    {{ cls.kind || 'other' }}
+                  </span>
+                </p>
               </div>
               <button
                 type="button"
@@ -165,6 +171,26 @@
                 class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
                 placeholder="0"
               />
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-medium text-gray-700 uppercase tracking-wide">
+                Type
+              </label>
+              <select
+                v-model="formKind"
+                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand bg-white"
+              >
+                <option value="main">
+                  Main (e.g. parfait)
+                </option>
+                <option value="beverage">
+                  Beverage
+                </option>
+                <option value="other">
+                  Other / misc
+                </option>
+              </select>
             </div>
 
             <p
@@ -949,16 +975,24 @@ definePageMeta({
   layout: 'default',
 })
 
+type AdminProductClass = {
+  id: number
+  name: string
+  sort_order: number
+  kind: string | null
+}
+
 const password = ref('')
 const error = ref('')
 const authenticated = ref(false)
 
-const productClasses = ref<{ id: number; name: string; sort_order: number }[]>([])
+const productClasses = ref<AdminProductClass[]>([])
 const classesLoading = ref(false)
 const classesError = ref('')
 
 const formName = ref('')
 const formSortOrder = ref<number | null>(0)
+const formKind = ref<'main' | 'beverage' | 'other'>('other')
 const formError = ref('')
 const formSubmitting = ref(false)
 const editingId = ref<number | null>(null)
@@ -1049,7 +1083,7 @@ async function refreshClasses() {
   classesLoading.value = true
   try {
     const data = await $fetch<
-      { id: number; name: string; sort_order: number }[]
+      { id: number; name: string; sort_order: number; kind: string | null }[]
     >('/api/admin/product-classes', {
       headers: adminHeaders(),
     })
@@ -1062,10 +1096,21 @@ async function refreshClasses() {
   }
 }
 
-function startEdit(cls: { id: number; name: string; sort_order: number }) {
+function startEdit(cls: {
+  id: number
+  name: string
+  sort_order: number
+  kind: string | null
+}) {
   editingId.value = cls.id
   formName.value = cls.name
   formSortOrder.value = cls.sort_order
+  const rawKind = (cls.kind || '').toLowerCase()
+  if (rawKind === 'main' || rawKind === 'beverage' || rawKind === 'other') {
+    formKind.value = rawKind
+  } else {
+    formKind.value = 'other'
+  }
   formError.value = ''
 }
 
@@ -1073,6 +1118,7 @@ function resetForm() {
   editingId.value = null
   formName.value = ''
   formSortOrder.value = 0
+  formKind.value = 'other'
   formError.value = ''
 }
 
@@ -1483,10 +1529,11 @@ async function submitClass() {
         id: number
         name: string
         sort_order: number
+        kind: string | null
       }>(`/api/admin/product-classes/${editingId.value}`, {
         method: 'PATCH',
         headers: adminHeaders(),
-        body: { name, sort_order: sortOrder },
+        body: { name, sort_order: sortOrder, kind: formKind.value },
       })
       const idx = productClasses.value.findIndex((c) => c.id === updated.id)
       if (idx !== -1) {
@@ -1497,10 +1544,11 @@ async function submitClass() {
         id: number
         name: string
         sort_order: number
+        kind: string | null
       }>('/api/admin/product-classes', {
         method: 'POST',
         headers: adminHeaders(),
-        body: { name, sort_order: sortOrder },
+        body: { name, sort_order: sortOrder, kind: formKind.value },
       })
       productClasses.value.push(created)
     }

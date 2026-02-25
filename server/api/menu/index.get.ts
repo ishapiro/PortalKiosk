@@ -6,7 +6,9 @@ export default defineEventHandler(async (event) => {
 
   const [classesResult, productsResult, customizationsResult] = await Promise.all([
     db
-      .prepare('SELECT id, name, sort_order FROM product_classes ORDER BY sort_order, id')
+      .prepare(
+        'SELECT id, name, sort_order, kind FROM product_classes ORDER BY sort_order, id',
+      )
       .all(),
     db
       .prepare(
@@ -21,7 +23,12 @@ export default defineEventHandler(async (event) => {
   ])
 
   const classRows =
-    (classesResult.results as { id: number; name: string; sort_order: number }[]) ?? []
+    (classesResult.results as {
+      id: number
+      name: string
+      sort_order: number
+      kind: string | null
+    }[]) ?? []
   const productRows =
     (productsResult.results as {
       id: number
@@ -107,6 +114,7 @@ export default defineEventHandler(async (event) => {
       id: cls.id,
       name: cls.name,
       sort_order: cls.sort_order,
+      kind: cls.kind || 'other',
       customizations: classCustomizations,
       products: classProducts,
     }

@@ -3,6 +3,7 @@ import { requireAdmin } from '~/server/utils/adminAuth'
 interface UpdateProductClassBody {
   name?: string
   sort_order?: number
+  kind?: string
 }
 
 export default defineEventHandler(async (event) => {
@@ -23,8 +24,13 @@ export default defineEventHandler(async (event) => {
   const name = body?.name?.trim()
   const hasName = typeof name === 'string' && name.length > 0
   const hasSortOrder = typeof body?.sort_order === 'number' && Number.isFinite(body.sort_order)
+  const kind =
+    typeof body?.kind === 'string' && body.kind.trim()
+      ? body.kind.trim()
+      : undefined
+  const hasKind = typeof kind === 'string'
 
-  if (!hasName && !hasSortOrder) {
+  if (!hasName && !hasSortOrder && !hasKind) {
     // nothing to update
     return { ok: true }
   }
@@ -42,7 +48,14 @@ export default defineEventHandler(async (event) => {
     values.push(Number(body!.sort_order))
   }
 
-  const sql = `UPDATE product_classes SET ${fields.join(', ')}, updated_at = datetime('now') WHERE id = ? RETURNING id, name, sort_order`
+  if (hasKind && kind) {
+    fields.push('kind = ?')
+    values.push(kind)
+  }
+
+  const sql = `UPDATE product_classes SET ${fields.join(
+    ', ',
+  )}, updated_at = datetime('now') WHERE id = ? RETURNING id, name, sort_order, kind`
   values.push(id)
 
   const { results } = await db.prepare(sql).bind(...values).all()

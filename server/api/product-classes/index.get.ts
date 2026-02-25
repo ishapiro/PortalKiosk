@@ -3,6 +3,10 @@ export default defineEventHandler(async (event) => {
   if (!db) {
     return []
   }
-  const { results } = await db.prepare('SELECT id, name, sort_order FROM product_classes ORDER BY sort_order, id').all()
+  const { results } = await db
+    .prepare(
+      'SELECT id, name, sort_order, kind FROM product_classes ORDER BY sort_order, id',
+    )
+    .all()
   return results
 })

@@ -1,5 +1,7 @@
 <template>
-  <div class="kiosk-page min-h-screen max-w-5xl mx-auto mt-4 mb-6 px-3 sm:px-4 space-y-4">
+  <div
+    class="kiosk-page min-h-screen max-w-5xl mx-auto mt-4 mb-6 px-3 sm:px-4 space-y-4 pb-24 lg:pb-0"
+  >
     <div
       class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-emerald-100 p-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
     >
@@ -9,7 +11,8 @@
             Build your order
           </h1>
           <p class="text-sm text-gray-600 leading-relaxed">
-            Start by entering your name, then choose one parfait and one beverage. Tap a category, pick an item, then customize it before adding to your tray.
+            Start by entering your name, then choose one parfait (main) and one beverage. Work
+            straight down the screen: name → category → item → customizations → tray.
           </p>
         </div>
         <div class="space-y-1.5">
@@ -30,7 +33,10 @@
         </div>
       </div>
       <div class="mt-1 md:mt-0 flex items-center gap-3 text-xs sm:text-sm">
-        <div class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 min-w-[8rem]">
+        <div
+          ref="topTraySection"
+          class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 min-w-[8rem] w-full sm:w-auto"
+        >
           <p class="font-medium text-gray-900">
             Your tray
           </p>
@@ -38,9 +44,93 @@
             <span v-if="cartItems.length === 0">No items yet</span>
             <span v-else>{{ cartItems.length }} item{{ cartItems.length === 1 ? '' : 's' }} · {{ formatPrice(cartTotal) }}</span>
           </p>
-          <p class="text-gray-500 mt-1">
-            See the tray list to the right (or below on mobile) to review or remove items. Refreshing the page clears it.
+          <p class="text-gray-500 mt-1 hidden lg:block">
+            See the tray list on the right to review or remove items. Refreshing the page clears it.
           </p>
+          <div class="mt-2 space-y-2 lg:hidden">
+            <div
+              v-if="!cartItems.length"
+              class="text-xs text-gray-500"
+            >
+              Add a parfait or a beverage to your tray below, then review it here.
+            </div>
+            <div
+              v-else
+              class="space-y-2"
+            >
+              <div
+                v-for="item in cartItems"
+                :key="item.id"
+                class="rounded-2xl border border-gray-100 bg-white px-3 py-2.5 space-y-1.5"
+              >
+                <div class="flex items-start justify-between gap-2">
+                  <div>
+                    <p class="text-xs font-semibold text-gray-900">
+                      {{ item.productName }}
+                      <span class="ml-1 text-[10px] font-medium text-gray-500">
+                        ({{ item.className }})
+                      </span>
+                    </p>
+                    <p class="text-[11px] text-gray-500">
+                      {{ formatPrice(item.priceCents) }}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    class="text-[11px] text-gray-400 hover:text-gray-700"
+                    @click="removeFromCart(item.id)"
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                <div
+                  v-if="Object.keys(item.customizations).length"
+                  class="border-t border-gray-200 pt-1.5 mt-1"
+                >
+                  <dl class="space-y-1">
+                    <div
+                      v-for="(values, label) in item.customizations"
+                      :key="label"
+                      class="flex items-start justify-between gap-2"
+                    >
+                      <dt class="text-[10px] font-medium text-gray-500">
+                        {{ label }}
+                      </dt>
+                      <dd class="text-[10px] text-gray-700 text-right">
+                        {{ values.join(', ') }}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+
+              <div class="pt-1 border-t border-gray-200 space-y-1.5">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-gray-600">
+                    Total
+                  </span>
+                  <span class="font-semibold text-gray-900">
+                    {{ formatPrice(cartTotal) }}
+                  </span>
+                </div>
+                <p
+                  v-if="orderError"
+                  class="text-[11px] text-red-600"
+                >
+                  {{ orderError }}
+                </p>
+                <button
+                  type="button"
+                  class="w-full inline-flex items-center justify-center py-2.5 px-3 rounded-lg bg-emerald-600 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 disabled:opacity-50 disabled:pointer-events-none"
+                  :disabled="placeOrderLoading || !customerName.trim() || cartItems.length === 0"
+                  @click="placeOrder"
+                >
+                  {{ placeOrderLoading ? 'Placing order…' : 'Place order' }}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -49,7 +139,7 @@
       <div class="space-y-4">
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 space-y-3">
           <h2 class="text-base font-semibold text-gray-900 tracking-tight">
-            Categories
+            2. Choose a course
           </h2>
 
           <div
@@ -92,10 +182,12 @@
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 space-y-3 min-h-[14rem]">
+        <div
+          class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 space-y-3 min-h-[14rem]"
+        >
           <div class="flex items-center justify-between gap-3">
             <h2 class="text-base font-semibold text-gray-900 tracking-tight">
-              Products
+              3. Pick an item
             </h2>
             <p class="text-xs text-gray-500">
               Tap an item to customize it.
@@ -149,7 +241,7 @@
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 space-y-3">
           <div class="flex items-center justify-between gap-3">
             <h2 class="text-base font-semibold text-gray-900 tracking-tight">
-              Customizations
+              4. Customize & add to tray
             </h2>
             <p class="text-xs text-gray-500">
               Options change based on the item you pick.
@@ -242,7 +334,9 @@
         </div>
       </div>
 
-      <aside class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 space-y-3 lg:sticky lg:top-4">
+      <aside
+        class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 space-y-3 lg:sticky lg:top-4 hidden lg:block"
+      >
         <div class="flex items-center justify-between gap-3">
           <h2 class="text-base font-semibold text-gray-900 tracking-tight">
             Your tray
@@ -362,6 +456,7 @@
         </div>
       </aside>
     </div>
+
   </div>
 </template>
 
@@ -394,6 +489,7 @@ type MenuClass = {
   id: number
   name: string
   sort_order: number
+  kind: string
   customizations: MenuCustomization[]
   products: MenuProduct[]
 }
@@ -421,6 +517,7 @@ const customerName = ref('')
 const orderNumber = ref<number | null>(null)
 const orderError = ref('')
 const placeOrderLoading = ref(false)
+const topTraySection = ref<HTMLElement | null>(null)
 
 const selectedClass = computed(() =>
   classes.value.find((c) => c.id === selectedClassId.value) ?? null,
@@ -456,6 +553,12 @@ function selectClass(id: number) {
 }
 
 function selectProduct(id: number) {
+  if (selectedProductId.value === id) {
+    selectedProductId.value = null
+    selectionByCustomization.value = {}
+    return
+  }
+
   selectedProductId.value = id
   selectionByCustomization.value = {}
 }
@@ -531,6 +634,11 @@ function addToCart() {
   }
 
   cartItems.value.push(newItem)
+  nextTick(() => {
+    if (topTraySection.value) {
+      topTraySection.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  })
 }
 
 function removeFromCart(id: number) {
