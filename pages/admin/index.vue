@@ -226,6 +226,130 @@
       <div class="flex items-center justify-between gap-4">
         <div>
           <h2 class="text-base font-semibold text-gray-900 tracking-tight">
+            Kiosk thank-you message
+          </h2>
+          <p class="text-xs text-gray-600">
+            Configure the message shown in a modal after a customer places an order, plus an optional link.
+          </p>
+        </div>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-brand text-xs font-medium text-white shadow-sm hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-1 focus:ring-offset-white"
+          @click="loadKioskSettings"
+        >
+          Refresh
+        </button>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)]">
+        <form
+          class="space-y-3"
+          @submit.prevent="saveKioskSettings"
+        >
+          <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-gray-700 uppercase tracking-wide">
+              Message HTML
+            </label>
+            <textarea
+              v-model="kioskThankYouHtml"
+              rows="6"
+              class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
+              placeholder="<p>Thank you for your order!</p>&#10;<p><center>We will call your name when it is ready.</center></p>"
+            />
+            <p class="text-[11px] text-gray-500">
+              Basic HTML only (e.g. &lt;p&gt;, &lt;br&gt;, &lt;center&gt;). Styling is handled by the kiosk UI.
+            </p>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-gray-700 uppercase tracking-wide">
+              Link URL (optional)
+            </label>
+            <input
+              v-model="kioskThankYouLinkUrl"
+              type="url"
+              class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
+              placeholder="https://example.com/menu"
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-gray-700 uppercase tracking-wide">
+              Link label (optional)
+            </label>
+            <input
+              v-model="kioskThankYouLinkLabel"
+              type="text"
+              class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
+              placeholder="View our full menu"
+            />
+          </div>
+
+          <p
+            v-if="kioskSettingsError"
+            class="text-xs text-red-600"
+          >
+            {{ kioskSettingsError }}
+          </p>
+
+          <div class="flex items-center gap-3">
+            <button
+              type="submit"
+              class="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-brand text-xs font-medium text-white shadow-sm hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-1 focus:ring-offset-white disabled:opacity-60"
+              :disabled="kioskSettingsSaving"
+            >
+              Save message
+            </button>
+            <button
+              type="button"
+              class="text-xs text-gray-500 hover:text-gray-700"
+              @click="loadKioskSettings"
+            >
+              Reset
+            </button>
+          </div>
+        </form>
+
+        <div class="space-y-3">
+          <h3 class="text-sm font-semibold text-gray-900">
+            Preview
+          </h3>
+          <div class="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-5 space-y-3">
+            <p class="text-xs font-medium text-gray-700 uppercase tracking-wide">
+              Modal content
+            </p>
+            <div class="rounded-2xl bg-white border border-gray-200 px-4 py-5 space-y-3">
+              <p class="text-sm font-semibold text-gray-900">
+                Example thank-you modal
+              </p>
+              <div
+                class="prose prose-sm max-w-none text-gray-800"
+                v-html="kioskThankYouHtml || '<p>Thank you for your order!</p><p>We will call your name when it is ready.</p>'"
+              />
+              <div
+                v-if="kioskThankYouLinkUrl"
+                class="pt-2 border-t border-gray-100"
+              >
+                <a
+                  :href="kioskThankYouLinkUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand-light"
+                >
+                  <span>{{ kioskThankYouLinkLabel || 'Open link' }}</span>
+                  <span aria-hidden="true">↗</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-semibold text-gray-900 tracking-tight">
             Employees
           </h2>
           <p class="text-xs text-gray-600">
@@ -1072,6 +1196,12 @@ const editingEmployeeId = ref<number | null>(null)
 const employeeFormError = ref('')
 const employeeSubmitting = ref(false)
 
+const kioskThankYouHtml = ref('')
+const kioskThankYouLinkUrl = ref('')
+const kioskThankYouLinkLabel = ref('')
+const kioskSettingsError = ref('')
+const kioskSettingsSaving = ref(false)
+
 function adminHeaders() {
   return {
     'x-admin-password': password.value,
@@ -1367,6 +1497,57 @@ async function submitEmployee() {
   }
 }
 
+async function loadKioskSettings() {
+  kioskSettingsError.value = ''
+  try {
+    const res = await $fetch<{
+      kiosk_thank_you_html: string | null
+      kiosk_thank_you_link_url: string | null
+      kiosk_thank_you_link_label: string | null
+    }>('/api/admin/system-settings', {
+      headers: adminHeaders(),
+    })
+
+    kioskThankYouHtml.value = res.kiosk_thank_you_html ?? ''
+    kioskThankYouLinkUrl.value = res.kiosk_thank_you_link_url ?? ''
+    kioskThankYouLinkLabel.value = res.kiosk_thank_you_link_label ?? ''
+  } catch (e: any) {
+    kioskSettingsError.value =
+      e?.data?.message || e?.message || 'Failed to load kiosk settings'
+  }
+}
+
+async function saveKioskSettings() {
+  kioskSettingsError.value = ''
+  kioskSettingsSaving.value = true
+  try {
+    const body = {
+      kiosk_thank_you_html: kioskThankYouHtml.value || '',
+      kiosk_thank_you_link_url: kioskThankYouLinkUrl.value || '',
+      kiosk_thank_you_link_label: kioskThankYouLinkLabel.value || '',
+    }
+
+    const res = await $fetch<{
+      kiosk_thank_you_html: string | null
+      kiosk_thank_you_link_url: string | null
+      kiosk_thank_you_link_label: string | null
+    }>('/api/admin/system-settings', {
+      method: 'POST',
+      headers: adminHeaders(),
+      body,
+    })
+
+    kioskThankYouHtml.value = res.kiosk_thank_you_html ?? ''
+    kioskThankYouLinkUrl.value = res.kiosk_thank_you_link_url ?? ''
+    kioskThankYouLinkLabel.value = res.kiosk_thank_you_link_label ?? ''
+  } catch (e: any) {
+    kioskSettingsError.value =
+      e?.data?.message || e?.message || 'Failed to save kiosk settings'
+  } finally {
+    kioskSettingsSaving.value = false
+  }
+}
+
 function formatOrderDate(iso: string) {
   if (!iso) return '—'
   try {
@@ -1597,6 +1778,11 @@ async function submitPassword() {
       await refreshEmployees()
     } catch {
       // Employees list may fail
+    }
+    try {
+      await loadKioskSettings()
+    } catch {
+      // Kiosk settings may be missing
     }
   } else {
     error.value = 'Incorrect password'

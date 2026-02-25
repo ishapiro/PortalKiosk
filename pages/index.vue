@@ -7,8 +7,11 @@
     >
       <div class="space-y-3 max-w-xl">
         <div class="space-y-1">
-          <h1 class="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">
-            Build your order
+          <h1 class="text-center text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight pb-3">
+            What would you like to order?
+            <br />
+            ?מה תרצו להזמין
+            <br />
           </h1>
           <p class="text-sm text-gray-600 leading-relaxed">
             Start by entering your name, then choose one parfait (main) and one beverage. Work
@@ -114,6 +117,9 @@
                     {{ formatPrice(cartTotal) }}
                   </span>
                 </div>
+                <p class="text-[11px] text-gray-500">
+                  You must enter your name before placing your order so we can call you when it is ready.
+                </p>
                 <p
                   v-if="orderError"
                   class="text-[11px] text-red-600"
@@ -139,7 +145,7 @@
       <div class="space-y-4">
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 space-y-3">
           <h2 class="text-base font-semibold text-gray-900 tracking-tight">
-            2. Choose a course
+            2. Choose a parfait or a beverage
           </h2>
 
           <div
@@ -416,6 +422,9 @@
                 {{ formatPrice(cartTotal) }}
               </span>
             </div>
+            <p class="text-xs text-gray-500">
+              You must enter your name before placing your order so we can call you when it is ready.
+            </p>
             <p
               v-if="orderError"
               class="text-xs text-red-600"
@@ -458,10 +467,109 @@
     </div>
 
   </div>
+
+  <Transition name="kiosk-thank-you">
+    <div
+      v-if="showThankYouModal"
+      class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 px-4 py-6"
+      @click.self="showThankYouModal = false"
+    >
+      <div class="max-w-md w-full mx-auto">
+        <div
+          class="relative overflow-hidden rounded-3xl bg-white border border-emerald-100 shadow-2xl px-5 py-6 space-y-4"
+        >
+          <div class="absolute -top-16 -right-10 h-40 w-40 bg-emerald-100 rounded-full opacity-70 blur-3xl" />
+          <div class="absolute -bottom-20 -left-10 h-40 w-40 bg-emerald-50 rounded-full opacity-80 blur-3xl" />
+
+          <div class="relative space-y-3">
+            <div class="flex items-center gap-3">
+              <div class="h-10 w-10 rounded-full bg-emerald-600 flex items-center justify-center shadow-md">
+                <span class="text-xl text-white">✓</span>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-gray-900">
+                  Thank you for your order
+                </p>
+                <p class="text-xs text-gray-500">
+                  Please keep this screen visible until you note your order number.
+                </p>
+              </div>
+            </div>
+
+            <div
+              v-if="orderNumber != null"
+              class="rounded-2xl bg-emerald-50 border border-emerald-100 px-4 py-3 space-y-1"
+            >
+              <p class="text-[11px] font-medium text-emerald-800">
+                Your order number
+              </p>
+              <p class="text-3xl font-bold tracking-tight text-emerald-900">
+                #{{ orderNumber }}
+              </p>
+            </div>
+
+            <div
+              class="prose prose-sm max-w-none text-gray-800"
+              v-html="kioskSettings?.kiosk_thank_you_html || '<p>Your order has been sent to the kitchen.</p><p>We will call your name when it is ready.</p>'"
+            />
+
+            <div
+              v-if="kioskSettings?.kiosk_thank_you_link_url"
+              class="pt-2 border-t border-gray-100"
+            >
+              <a
+                :href="kioskSettings.kiosk_thank_you_link_url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+              >
+                <span>{{ kioskSettings.kiosk_thank_you_link_label || 'Open link' }}</span>
+                <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="relative pt-1 flex items-center justify-between gap-3">
+            <button
+              type="button"
+              class="text-xs text-gray-500 hover:text-gray-700"
+              @click="showThankYouModal = false"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-emerald-600 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 focus:ring-offset-white"
+              @click="showThankYouModal = false"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Transition>
 </template>
 
+<style scoped>
+.kiosk-thank-you-enter-active,
+.kiosk-thank-you-leave-active {
+  transition: opacity 0.2s ease-out;
+}
+.kiosk-thank-you-enter-from,
+.kiosk-thank-you-leave-to {
+  opacity: 0;
+}
+.kiosk-thank-you-enter-active .kiosk-thank-you-card,
+.kiosk-thank-you-leave-active .kiosk-thank-you-card {
+  transition: transform 0.25s ease-out, opacity 0.25s ease-out;
+}
+</style>
+
 <script setup lang="ts">
+import { ref, computed, onMounted, nextTick } from 'vue'
 declare const definePageMeta: (meta: any) => void
+declare function $fetch<T = any>(input: any, init?: any): Promise<T>
 
 definePageMeta({
   layout: 'kiosk',
@@ -518,6 +626,15 @@ const orderNumber = ref<number | null>(null)
 const orderError = ref('')
 const placeOrderLoading = ref(false)
 const topTraySection = ref<HTMLElement | null>(null)
+
+type KioskSettings = {
+  kiosk_thank_you_html: string | null
+  kiosk_thank_you_link_url: string | null
+  kiosk_thank_you_link_label: string | null
+}
+
+const kioskSettings = ref<KioskSettings | null>(null)
+const showThankYouModal = ref(false)
 
 const selectedClass = computed(() =>
   classes.value.find((c) => c.id === selectedClassId.value) ?? null,
@@ -680,6 +797,7 @@ async function placeOrder() {
     })
     orderNumber.value = res.order_number
     cartItems.value = []
+    showThankYouModal.value = true
   } catch (e: any) {
     const status = e?.statusCode ?? e?.status
     const message = e?.data?.statusMessage ?? e?.data?.message ?? e?.message ?? 'Failed to place order'
@@ -704,6 +822,12 @@ onMounted(async () => {
     classes.value = Array.isArray(res.classes) ? res.classes : []
     if (classes.value.length > 0) {
       selectClass(classes.value[0].id)
+    }
+    try {
+      const settings = await $fetch<KioskSettings>('/api/kiosk/settings')
+      kioskSettings.value = settings
+    } catch {
+      kioskSettings.value = null
     }
   } catch (e: any) {
     loadError.value = e?.data?.message || e?.message || 'Failed to load menu'
