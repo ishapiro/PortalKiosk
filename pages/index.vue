@@ -13,17 +13,13 @@
             ?מה תרצו להזמין
             <br />
           </h1>
-          <p class="text-sm text-gray-600 leading-relaxed">
-            Start by entering your name, then choose one parfait (main) and one beverage. Work
-            straight down the screen: name → category → item → customizations → tray.
-          </p>
         </div>
         <div class="space-y-1.5">
           <label
             for="customer-name-top"
             class="block text-xs font-medium text-gray-700 uppercase tracking-wide"
           >
-            Your name
+            Your name (required) 
           </label>
           <input
             id="customer-name-top"
@@ -145,8 +141,14 @@
       <div class="space-y-4">
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 space-y-3">
           <h2 class="text-base font-semibold text-gray-900 tracking-tight">
-            2. Choose a parfait or a beverage
+            2. Start with a parfait or a drink
           </h2>
+          <p class="text-xs text-gray-500">
+            Choose a parfait or a drink to start your order.
+            <br />
+            מה מתחשק לך להזמין
+            <br />
+          </p>
 
           <div
             v-if="loading"
@@ -193,7 +195,7 @@
         >
           <div class="flex items-center justify-between gap-3">
             <h2 class="text-base font-semibold text-gray-900 tracking-tight">
-              3. Pick an item
+              3. Pick an base
             </h2>
             <p class="text-xs text-gray-500">
               Tap an item to customize it.
@@ -258,13 +260,13 @@
             v-if="!selectedProduct || !selectedClass"
             class="text-sm text-gray-500"
           >
-            Pick a product to customize it.
+            Pick a base / בחרו בסיס
           </div>
           <div
             v-else-if="!selectedProduct.customizations.length"
             class="text-sm text-gray-500"
           >
-            No extra options for this item.
+            No extra options for this item / אין אפשרויות נוספות לפריט זה
           </div>
           <div
             v-else
@@ -325,7 +327,7 @@
                 class="text-xs text-gray-500 hover:text-gray-700"
                 @click="clearSelections"
               >
-                Clear selections
+                Clear selections / נקה הגדרות
               </button>
               <button
                 type="button"
@@ -333,7 +335,7 @@
                 :disabled="!selectedProduct"
                 @click="addToCart"
               >
-                Add to tray
+                Add to tray / הוסף למגש
               </button>
             </div>
           </div>
@@ -388,7 +390,7 @@
                 class="text-xs text-gray-400 hover:text-gray-700"
                 @click="removeFromCart(item.id)"
               >
-                Remove
+                Remove / הסיר
               </button>
             </div>
 
@@ -416,7 +418,7 @@
           <div class="pt-2 border-t border-gray-200 space-y-2">
             <div class="flex items-center justify-between text-sm">
               <span class="text-gray-600">
-                Total
+                Total / סה"כ
               </span>
               <span class="font-semibold text-gray-900">
                 {{ formatPrice(cartTotal) }}
@@ -447,7 +449,7 @@
           class="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4 space-y-2"
         >
           <p class="text-sm font-medium text-emerald-800">
-            Order placed
+            Order placed / הזמנה נשלחה
           </p>
           <p class="text-2xl font-bold text-emerald-900 tracking-tight">
             #{{ orderNumber }}
