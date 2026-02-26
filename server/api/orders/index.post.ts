@@ -64,26 +64,113 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Generate next order_number (unique)
-  const maxResult = await db
-    .prepare('SELECT COALESCE(MAX(order_number), 0) AS max_num FROM orders')
-    .first<{ max_num: number }>()
-  const orderNumber = (maxResult?.max_num ?? 0) + 1
+  // Generate next order_number (unique, monotonic) using system_settings
+  const seqKey = 'last_order_number'
 
-  // Insert order
-  const orderInsert = await db
+  // First, try to atomically increment an existing counter row
+  const updatedSeq = await db
     .prepare(
-      `INSERT INTO orders (customer_name, order_number, status) 
-       VALUES (?, ?, 'new')`,
+      `UPDATE system_settings
+       SET value = CAST(value AS INTEGER) + 1,
+           updated_at = datetime('now')
+       WHERE key = ?
+       RETURNING value`,
     )
-    .bind(customerName, orderNumber)
-    .run()
+    .bind(seqKey)
+    .first<{ value: number }>()
 
-  const orderId = orderInsert.meta?.last_row_id != null ? Number(orderInsert.meta.last_row_id) : undefined
+  let orderNumber: number
+
+  if (updatedSeq && updatedSeq.value != null) {
+    orderNumber = Number(updatedSeq.value)
+
+    // Safety check: if the sequence row ever got out of sync
+    // (e.g. smaller than existing order_number values), bump it forward
+    const maxResult = await db
+      .prepare('SELECT COALESCE(MAX(order_number), 0) AS max_num FROM orders')
+      .first<{ max_num: number }>()
+
+    const currentMax = maxResult?.max_num ?? 0
+    if (orderNumber <= currentMax || orderNumber <= 1134) {
+      const base = Math.max(1134, currentMax)
+      orderNumber = base + 1
+
+      await db
+        .prepare(
+          `UPDATE system_settings
+           SET value = ?, updated_at = datetime('now')
+           WHERE key = ?`,
+        )
+        .bind(String(orderNumber), seqKey)
+        .run()
+    }
+  } else {
+    // No existing sequence row yet: initialize it based on current max(order_number)
+    const maxResult = await db
+      .prepare('SELECT COALESCE(MAX(order_number), 0) AS max_num FROM orders')
+      .first<{ max_num: number }>()
+
+    const base = Math.max(1134, maxResult?.max_num ?? 0)
+    orderNumber = base + 1
+
+    await db
+      .prepare(
+        `INSERT INTO system_settings (key, value, updated_at)
+         VALUES (?, ?, datetime('now'))`,
+      )
+      .bind(seqKey, String(orderNumber))
+      .run()
+  }
+
+  // Insert order with retry on UNIQUE(order_number) conflicts
+  let orderId: number | undefined
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    // Debug: log the order number we're trying
+    // eslint-disable-next-line no-console
+    console.log('[orders] attempting insert with order_number', orderNumber, 'attempt', attempt + 1)
+
+    try {
+      const orderInsert = await db
+        .prepare(
+          `INSERT INTO orders (customer_name, order_number, status) 
+           VALUES (?, ?, 'new')`,
+        )
+        .bind(customerName, orderNumber)
+        .run()
+
+      orderId =
+        orderInsert.meta?.last_row_id != null
+          ? Number(orderInsert.meta.last_row_id)
+          : undefined
+
+      if (orderId != null) {
+        break
+      }
+    } catch (e: any) {
+      const msg = String(e?.message ?? e) || ''
+      if (msg.includes('UNIQUE constraint failed: orders.order_number')) {
+        // Collision: bump the sequence forward and try again
+        orderNumber += 1
+        await db
+          .prepare(
+            `UPDATE system_settings
+             SET value = ?, updated_at = datetime('now')
+             WHERE key = ?`,
+          )
+          .bind(String(orderNumber), seqKey)
+          .run()
+        continue
+      }
+
+      throw e
+    }
+  }
+
   if (orderId == null) {
     throw createError({
       statusCode: 500,
-      statusMessage: 'Failed to create order',
+      statusMessage: 'Failed to create order after retries',
     })
   }
 

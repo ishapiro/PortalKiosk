@@ -165,16 +165,31 @@
                 class="group rounded-2xl bg-slate-950/50 border border-slate-800/70 px-3 py-2 flex items-center justify-between gap-3 transition transform hover:-translate-y-0.5 hover:border-amber-400/80 hover:bg-slate-900/80"
               >
                 <div class="space-y-0.5">
-                  <p class="text-sm font-semibold text-slate-50">
+                  <button
+                    type="button"
+                    class="text-sm font-semibold text-slate-50 hover:underline"
+                    @click="openOrderDetails(ord)"
+                  >
                     #{{ ord.order_number ?? ord.id }}
-                  </p>
+                  </button>
                   <p class="text-xs text-slate-300">
                     {{ ord.customer_name }}
                   </p>
                 </div>
-                <span class="text-[11px] font-medium text-amber-200">
-                  In queue
-                </span>
+                <div class="flex items-center gap-1.5 whitespace-nowrap">
+                  <span class="text-[11px] font-medium text-amber-200">
+                    In queue
+                  </span>
+                  <button
+                    type="button"
+                    class="inline-flex items-center justify-center h-6 w-6 rounded-full border border-amber-400/70 bg-amber-500/10 text-xs font-semibold text-amber-100 hover:bg-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    :disabled="updatingIds.includes(ord.id)"
+                    @click="advanceOrderStatus(ord.id, ord.status)"
+                    aria-label="Move order to preparing"
+                  >
+                    →
+                  </button>
+                </div>
               </li>
               <li
                 v-if="grouped.new.length === 0"
@@ -207,18 +222,40 @@
                 class="group rounded-2xl bg-slate-950/50 border border-slate-800/70 px-3 py-2 flex items-center justify-between gap-3 transition transform hover:-translate-y-0.5 hover:border-sky-400/80 hover:bg-slate-900/80"
               >
                 <div>
-                  <p class="text-sm font-semibold text-slate-50">
+                  <button
+                    type="button"
+                    class="text-sm font-semibold text-slate-50 hover:underline"
+                    @click="openOrderDetails(ord)"
+                  >
                     #{{ ord.order_number ?? ord.id }}
-                  </p>
+                  </button>
                   <p class="text-xs text-slate-300">
                     {{ ord.customer_name }}
                   </p>
                 </div>
-                <div class="flex items-center gap-1.5 text-[11px] text-sky-200">
+                <div class="flex items-center gap-1.5 text-[11px] text-sky-200 whitespace-nowrap">
                   <span class="h-1.5 w-8 rounded-full bg-sky-500/40 overflow-hidden">
                     <span class="block h-full w-1/2 bg-sky-300 animate-[pulse_1.4s_ease-in-out_infinite]" />
                   </span>
                   <span>Cooking</span>
+                  <button
+                    type="button"
+                    class="ml-1 inline-flex items-center justify-center h-6 w-6 rounded-full border border-sky-400/70 bg-sky-500/10 text-xs font-semibold text-sky-100 hover:bg-sky-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    :disabled="updatingIds.includes(ord.id)"
+                    @click="regressOrderStatus(ord.id, ord.status)"
+                    aria-label="Move order back to new"
+                  >
+                    ←
+                  </button>
+                  <button
+                    type="button"
+                    class="ml-1 inline-flex items-center justify-center h-6 w-6 rounded-full border border-sky-400/70 bg-sky-500/10 text-xs font-semibold text-sky-100 hover:bg-sky-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    :disabled="updatingIds.includes(ord.id)"
+                    @click="advanceOrderStatus(ord.id, ord.status)"
+                    aria-label="Move order to ready"
+                  >
+                    →
+                  </button>
                 </div>
               </li>
               <li
@@ -230,12 +267,12 @@
             </ul>
           </div>
 
-          <!-- Ready -->
+          <!-- Ready / Delivery -->
           <div class="rounded-3xl border border-emerald-500/40 bg-gradient-to-b from-emerald-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-3 space-y-2 shadow-lg shadow-emerald-900/40 flex flex-col h-full">
             <header class="flex items-center justify-between gap-3">
               <div>
                 <h2 class="text-sm font-semibold text-emerald-100 tracking-tight">
-                  Ready for pickup
+                  Ready for pickup / Delivery
                 </h2>
                 <p class="text-[11px] text-emerald-200/80">
                   These orders are waiting at the counter.
@@ -252,17 +289,39 @@
                 class="group rounded-2xl bg-slate-950/50 border border-slate-800/70 px-3 py-2 flex items-center justify-between gap-3 transition transform hover:-translate-y-0.5 hover:border-emerald-400/80 hover:bg-slate-900/80"
               >
                 <div>
-                  <p class="text-sm font-semibold text-slate-50">
+                  <button
+                    type="button"
+                    class="text-sm font-semibold text-slate-50 hover:underline"
+                    @click="openOrderDetails(ord)"
+                  >
                     #{{ ord.order_number ?? ord.id }}
-                  </p>
+                  </button>
                   <p class="text-xs text-slate-300">
                     {{ ord.customer_name }}
                   </p>
                 </div>
-                <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-200">
-                  <span class="h-2 w-2 rounded-full bg-emerald-300 animate-ping" />
-                  Pickup now
-                </span>
+                <div class="flex items-center gap-1.5 whitespace-nowrap">
+                  <button
+                    type="button"
+                    class="inline-flex items-center justify-center h-6 w-6 rounded-full border border-emerald-400/70 bg-emerald-500/10 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    :disabled="updatingIds.includes(ord.id)"
+                    @click="regressOrderStatus(ord.id, ord.status)"
+                    aria-label="Move order back to preparing"
+                  >
+                    ←
+                  </button>
+                  <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-200">
+                    <span class="h-2 w-2 rounded-full bg-emerald-300 animate-ping" />
+                  </span>
+                  <button
+                    type="button"
+                    class="inline-flex items-center justify-center px-2 py-1 rounded-full border border-emerald-400/70 bg-emerald-500/15 text-[10px] font-semibold text-emerald-100 hover:bg-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    :disabled="deliveringIds.includes(ord.id)"
+                    @click="markOrderDelivered(ord.id)"
+                  >
+                    Mark delivered
+                  </button>
+                </div>
               </li>
               <li
                 v-if="grouped.ready.length === 0"
@@ -275,6 +334,75 @@
         </section>
       </div>
     </main>
+
+    <!-- Order details modal -->
+    <div
+      v-if="selectedOrder"
+      class="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4 py-6"
+      @click.self="closeOrderDetails"
+    >
+      <div class="max-w-md w-full rounded-2xl bg-slate-950 border border-slate-700 shadow-2xl px-5 py-6 space-y-4">
+        <header class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs uppercase tracking-wide text-slate-400">
+              Order details
+            </p>
+            <p class="text-xl font-semibold text-slate-50">
+              #{{ selectedOrder.order_number ?? selectedOrder.id }}
+            </p>
+            <p class="text-xs text-slate-300 mt-1">
+              {{ selectedOrder.customer_name }}
+            </p>
+          </div>
+          <button
+            type="button"
+            class="text-xs text-slate-400 hover:text-slate-100"
+            @click="closeOrderDetails"
+          >
+            ✕
+          </button>
+        </header>
+
+        <section class="space-y-2 max-h-64 overflow-y-auto rounded-xl bg-slate-900/80 border border-slate-800 px-3 py-3">
+          <div
+            v-for="(item, idx) in selectedOrder.items"
+            :key="idx"
+            class="space-y-1 border-b border-slate-800 last:border-b-0 pb-2 last:pb-0"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-sm font-medium text-slate-50">
+                {{ item.product_name }}
+              </p>
+              <p class="text-xs text-slate-300">
+                ×{{ item.quantity }}
+              </p>
+            </div>
+            <div
+              v-if="item.customizations && Object.keys(item.customizations).length"
+              class="text-[11px] text-slate-300"
+            >
+              <div
+                v-for="(values, label) in item.customizations"
+                :key="label"
+              >
+                <span class="font-semibold">{{ label }}:</span>
+                <span> {{ values.join(', ') }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="flex items-center justify-end gap-3 pt-1">
+          <button
+            type="button"
+            class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-slate-800 text-xs font-semibold text-slate-100 hover:bg-slate-700"
+            @click="closeOrderDetails"
+          >
+            Dismiss
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -304,6 +432,10 @@ const orders = ref<StatusOrder[]>([])
 const loading = ref(true)
 const lastUpdated = ref<Date | null>(null)
 let intervalId: ReturnType<typeof setInterval> | null = null
+
+const deliveringIds = ref<number[]>([])
+const updatingIds = ref<number[]>([])
+const selectedOrder = ref<StatusOrder | null>(null)
 
 const password = ref('')
 const error = ref('')
@@ -371,6 +503,104 @@ async function fetchStatusOrders() {
     // keep previous data if fetch fails
   } finally {
     loading.value = false
+  }
+}
+
+function openOrderDetails(order: StatusOrder) {
+  selectedOrder.value = order
+}
+
+function closeOrderDetails() {
+  selectedOrder.value = null
+}
+
+async function advanceOrderStatus(id: number, currentStatus: StatusOrder['status']) {
+  if (updatingIds.value.includes(id)) return
+
+  let nextStatus: StatusOrder['status'] | null = null
+  if (currentStatus === 'new') {
+    nextStatus = 'preparing'
+  } else if (currentStatus === 'preparing') {
+    nextStatus = 'ready'
+  } else {
+    return
+  }
+
+  updatingIds.value.push(id)
+  try {
+    const headers: Record<string, string> = {}
+    if (password.value) {
+      headers['x-admin-password'] = password.value
+    }
+
+    await $fetch(`/api/admin/orders/${id}`, {
+      method: 'PATCH',
+      body: { status: nextStatus },
+      headers,
+    })
+
+    await fetchStatusOrders()
+  } catch {
+    // ignore, board will refresh on next poll
+  } finally {
+    updatingIds.value = updatingIds.value.filter((oid) => oid !== id)
+  }
+}
+
+async function regressOrderStatus(id: number, currentStatus: StatusOrder['status']) {
+  if (updatingIds.value.includes(id)) return
+
+  let nextStatus: StatusOrder['status'] | null = null
+  if (currentStatus === 'preparing') {
+    nextStatus = 'new'
+  } else if (currentStatus === 'ready') {
+    nextStatus = 'preparing'
+  } else {
+    return
+  }
+
+  updatingIds.value.push(id)
+  try {
+    const headers: Record<string, string> = {}
+    if (password.value) {
+      headers['x-admin-password'] = password.value
+    }
+
+    await $fetch(`/api/admin/orders/${id}`, {
+      method: 'PATCH',
+      body: { status: nextStatus },
+      headers,
+    })
+
+    await fetchStatusOrders()
+  } catch {
+    // ignore; board will refresh on next poll
+  } finally {
+    updatingIds.value = updatingIds.value.filter((oid) => oid !== id)
+  }
+}
+
+async function markOrderDelivered(id: number) {
+  if (deliveringIds.value.includes(id)) return
+
+  deliveringIds.value.push(id)
+  try {
+    const headers: Record<string, string> = {}
+    if (password.value) {
+      headers['x-admin-password'] = password.value
+    }
+
+    await $fetch(`/api/admin/orders/${id}`, {
+      method: 'PATCH',
+      body: { status: 'delivered' },
+      headers,
+    })
+
+    await fetchStatusOrders()
+  } catch {
+    // Ignore for now; board will refresh on next interval
+  } finally {
+    deliveringIds.value = deliveringIds.value.filter((oid) => oid !== id)
   }
 }
 

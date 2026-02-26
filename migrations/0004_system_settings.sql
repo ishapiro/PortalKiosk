@@ -5,3 +5,7 @@ CREATE TABLE IF NOT EXISTS system_settings (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Initialize last order number so visible order numbers start high
+INSERT OR IGNORE INTO system_settings (key, value)
+VALUES ('last_order_number', '1134');
+
