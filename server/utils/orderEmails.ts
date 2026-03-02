@@ -61,7 +61,7 @@ async function sendEmail(env: CloudflareEnv | undefined, to: string, subject: st
 export async function sendOrderPlacedEmail(env: CloudflareEnv | undefined, to: string, orderNumber: number, customerName: string) {
   const subject = 'Your order from the Brody Country Club'
   const safeName = customerName || 'Friend'
-  const html = `<p>Thank you, ${safeName}, for your order at The Brody Country Club.</p><p>Your order number is <strong>#${orderNumber}</strong>.</p><p>We will email you again when your order is ready for pickup.</p>`
+  const html = `<p>Thank you, ${safeName}, for your order at The Brody Country Club.</p><p>Your order number is <strong>#${orderNumber}</strong>.</p><p>We will email you again when your order is ready for pickup.</p><p>Pickup address:<br/>Rachel Imenu 14/2<br/>7175534 Modiim<br/>Israel</p>`
 
   await sendEmail(env, to, subject, html)
 }
@@ -70,7 +70,7 @@ export async function sendOrderReadyEmail(env: CloudflareEnv | undefined, to: st
   const subject = 'Your order is ready for pickup at the Brody\'s house'
   const safeName = customerName || 'Friend'
   const numberText = orderNumber != null ? ` Your order number is <strong>#${orderNumber}</strong>.` : ''
-  const html = `<p>Hi ${safeName},</p><p>Your order from The Brody Country Club is now <strong>ready for pickup at the Brody's house</strong>.</p><p>${numberText}</p>`
+  const html = `<p>Hi ${safeName},</p><p>Your order from The Brody Country Club is now <strong>ready for pickup at the Brody's house</strong>.</p><p>${numberText}</p><p>Pickup address:<br/>Rachel Imenu 14/2<br/>7175534 Modiim<br/>Israel</p>`
 
   await sendEmail(env, to, subject, html)
 }
