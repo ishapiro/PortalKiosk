@@ -315,6 +315,15 @@
                   </span>
                   <button
                     type="button"
+                    class="inline-flex items-center justify-center h-6 w-6 rounded-full border border-emerald-400/70 bg-emerald-500/10 text-[11px] font-semibold text-emerald-100 hover:bg-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    :disabled="resendingIds.includes(ord.id)"
+                    @click="resendReadyEmail(ord.id)"
+                    aria-label="Resend ready for pickup email"
+                  >
+                    E
+                  </button>
+                  <button
+                    type="button"
                     class="inline-flex items-center justify-center px-2 py-1 rounded-full border border-emerald-400/70 bg-emerald-500/15 text-[10px] font-semibold text-emerald-100 hover:bg-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                     :disabled="deliveringIds.includes(ord.id)"
                     @click="markOrderDelivered(ord.id)"
@@ -403,6 +412,41 @@
         </div>
       </div>
     </div>
+
+    <!-- Email status modal -->
+    <div
+      v-if="showEmailStatusModal"
+      class="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4 py-6"
+      @click.self="dismissEmailStatusModal"
+    >
+      <div class="max-w-sm w-full rounded-2xl bg-slate-950 border border-slate-700 shadow-2xl px-5 py-5 space-y-3">
+        <div class="flex items-start gap-3">
+          <div
+            class="h-8 w-8 rounded-full flex items-center justify-center text-sm font-semibold"
+            :class="emailStatusIsError ? 'bg-rose-500/20 text-rose-300 border border-rose-400/60' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/60'"
+          >
+            {{ emailStatusIsError ? '!' : 'E' }}
+          </div>
+          <div class="space-y-1">
+            <p class="text-sm font-semibold" :class="emailStatusIsError ? 'text-rose-200' : 'text-emerald-100'">
+              Delivery email status
+            </p>
+            <p class="text-xs text-slate-200">
+              {{ emailStatusMessage }}
+            </p>
+          </div>
+        </div>
+        <div class="pt-2 flex items-center justify-end">
+          <button
+            type="button"
+            class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-slate-800 text-xs font-semibold text-slate-100 hover:bg-slate-700"
+            @click="dismissEmailStatusModal"
+          >
+            Dismiss
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -433,6 +477,10 @@ let intervalId: ReturnType<typeof setInterval> | null = null
 
 const deliveringIds = ref<number[]>([])
 const updatingIds = ref<number[]>([])
+const resendingIds = ref<number[]>([])
+const showEmailStatusModal = ref(false)
+const emailStatusMessage = ref('')
+const emailStatusIsError = ref(false)
 const selectedOrder = ref<StatusOrder | null>(null)
 
 const password = ref('')
@@ -602,6 +650,35 @@ async function markOrderDelivered(id: number) {
   }
 }
 
+async function resendReadyEmail(id: number) {
+  if (resendingIds.value.includes(id)) return
+
+  resendingIds.value.push(id)
+  try {
+    const headers: Record<string, string> = {}
+    if (password.value) {
+      headers['x-admin-password'] = password.value
+    }
+
+    const res = await $fetch<{ ok: boolean }> (`/api/admin/orders/${id}/ready-email`, {
+      method: 'POST',
+      headers,
+    })
+
+    emailStatusIsError.value = !res.ok
+    emailStatusMessage.value = res.ok
+      ? 'Ready-for-pickup email was sent successfully.'
+      : 'Unable to send ready-for-pickup email.'
+  } catch (e: any) {
+    emailStatusIsError.value = true
+    emailStatusMessage.value =
+      e?.data?.statusMessage || e?.message || 'Failed to send ready-for-pickup email.'
+  } finally {
+    resendingIds.value = resendingIds.value.filter((oid) => oid !== id)
+    showEmailStatusModal.value = true
+  }
+}
+
 onMounted(() => {
   intervalId = setInterval(fetchStatusOrders, 5000)
 })
@@ -636,5 +713,10 @@ async function submitPassword() {
 function goHome() {
   router.push('/')
 }
+
+function dismissEmailStatusModal() {
+  showEmailStatusModal.value = false
+}
 </script>
+
 

@@ -11,7 +11,8 @@
     "migrate:local": "./scripts/run-migrations.sh",
     "migrate:remote": "./scripts/run-migrations.sh --remote",
     "preview": "npx wrangler dev",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "clean": "./scripts/clean-orders.sh"
   },
   "devDependencies": {
     "@nuxtjs/tailwindcss": "^6.12.0",

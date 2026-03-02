@@ -1098,6 +1098,54 @@
         </div>
       </div>
     </section>
+
+    <section class="bg-white rounded-2xl shadow-sm border border-red-100 p-6 space-y-4">
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-semibold text-red-700 tracking-tight">
+            Danger zone: Delete all orders
+          </h2>
+          <p class="text-xs text-red-600">
+            This will permanently delete all orders and their items from the database. This action
+            cannot be undone and should only be used for testing or resetting the kiosk.
+          </p>
+        </div>
+      </div>
+
+      <div class="space-y-3 max-w-md">
+        <p class="text-xs text-gray-700">
+          To confirm, type
+          <span class="font-semibold text-red-700">DELETE ALL ORDERS</span>
+          in the box below, then click &quot;Delete all orders&quot;.
+        </p>
+        <input
+          v-model="cleanConfirmText"
+          type="text"
+          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+          placeholder="DELETE ALL ORDERS"
+        />
+        <p
+          v-if="cleanError"
+          class="text-xs text-red-600"
+        >
+          {{ cleanError }}
+        </p>
+        <p
+          v-if="cleanSuccess"
+          class="text-xs text-emerald-600"
+        >
+          {{ cleanSuccess }}
+        </p>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-red-600 text-xs font-semibold text-white shadow-sm hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 focus:ring-offset-white disabled:opacity-60"
+          :disabled="cleaningOrders || cleanConfirmText !== CLEAN_CONFIRM_TEXT"
+          @click="runCleanOrders"
+        >
+          {{ cleaningOrders ? 'Deleting…' : 'Delete all orders' }}
+        </button>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -1216,6 +1264,12 @@ const kioskThankYouLinkUrl = ref('')
 const kioskThankYouLinkLabel = ref('')
 const kioskSettingsError = ref('')
 const kioskSettingsSaving = ref(false)
+
+const CLEAN_CONFIRM_TEXT = 'DELETE ALL ORDERS'
+const cleanConfirmText = ref('')
+const cleaningOrders = ref(false)
+const cleanError = ref('')
+const cleanSuccess = ref('')
 
 function adminHeaders() {
   return {
@@ -1620,6 +1674,39 @@ async function refreshCustomizations() {
       e?.data?.message || e?.message || 'Failed to load customizations'
   } finally {
     customizationsLoading.value = false
+  }
+}
+
+async function runCleanOrders() {
+  cleanError.value = ''
+  cleanSuccess.value = ''
+
+  if (cleanConfirmText.value !== CLEAN_CONFIRM_TEXT) {
+    cleanError.value = 'Confirmation text does not match.'
+    return
+  }
+
+  cleaningOrders.value = true
+  try {
+    const res = await $fetch<{ ok: boolean }>('/api/admin/orders/clean', {
+      method: 'POST',
+      headers: adminHeaders(),
+    })
+    if (!res.ok) {
+      cleanError.value = 'Failed to delete orders.'
+      return
+    }
+    cleanSuccess.value = 'All orders and order items have been deleted.'
+    cleanConfirmText.value = ''
+    // Optionally refresh orders list if the Orders section is in use
+    if (ordersTotal.value > 0) {
+      await fetchOrders(1)
+    }
+  } catch (e: any) {
+    cleanError.value =
+      e?.data?.statusMessage || e?.data?.message || e?.message || 'Failed to delete orders.'
+  } finally {
+    cleaningOrders.value = false
   }
 }
 

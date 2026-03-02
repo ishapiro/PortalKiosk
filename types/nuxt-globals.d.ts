@@ -15,6 +15,9 @@ declare function useRuntimeConfig(): any
 declare function getHeader(event: any, name: string): string | null
 declare function createError(input: any): any
 
+// Router helpers (Nitro)
+declare function getRouterParam(event: any, name: string): string | null
+
 // Cloudflare D1 (minimal shape for typing)
 type D1Database = any
 

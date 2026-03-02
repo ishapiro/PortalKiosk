@@ -1,4 +1,5 @@
 import { requireStation } from '~/server/utils/stationAuth'
+import { sendOrderReadyEmail } from '~/server/utils/orderEmails'
 
 const ALLOWED_STATUSES = ['new', 'preparing', 'ready', 'delivered'] as const
 
@@ -73,7 +74,7 @@ export default defineEventHandler(async (event) => {
         `UPDATE orders 
          SET status = 'ready', preparing_employee_id = NULL, updated_at = datetime('now') 
          WHERE id = ? 
-         RETURNING id, order_number, customer_name, status, created_at`,
+         RETURNING id, order_number, customer_name, customer_email, status, created_at`,
       )
       .bind(id)
       .all()
@@ -118,12 +119,19 @@ export default defineEventHandler(async (event) => {
       id: number
       order_number: number | null
       customer_name: string
+      customer_email?: string | null
       status: AllowedStatus
       created_at: string
     }[])?.[0]
 
   if (!row) {
     throw createError({ statusCode: 404, statusMessage: 'Order not found after update' })
+  }
+
+  // When an order moves into "ready" from "preparing", send the ready-for-pickup email.
+  if (currentStatus === 'preparing' && row.status === 'ready' && row.customer_email) {
+    const env = event.context.cloudflare?.env as { RESEND_API_KEY?: string } | undefined
+    await sendOrderReadyEmail(env, row.customer_email, row.order_number ?? null, row.customer_name)
   }
 
   return row

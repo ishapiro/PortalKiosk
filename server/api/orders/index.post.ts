@@ -1,3 +1,5 @@
+import { sendOrderPlacedEmail } from '~/server/utils/orderEmails'
+
 interface OrderItemBody {
   product_id: number
   product_class_id: number
@@ -150,10 +152,10 @@ export default defineEventHandler(async (event: any) => {
     try {
       const orderInsert = await db
         .prepare(
-          `INSERT INTO orders (customer_name, order_number, status) 
-           VALUES (?, ?, 'new')`,
+          `INSERT INTO orders (customer_name, customer_email, order_number, status) 
+           VALUES (?, ?, ?, 'new')`,
         )
-        .bind(customerName, orderNumber)
+        .bind(customerName, customerEmail, orderNumber)
         .run()
 
       orderId =
@@ -215,28 +217,10 @@ export default defineEventHandler(async (event: any) => {
     await itemStmt.bind(orderId, productId, productClassId, quantity, customizationsJson).run()
   }
 
-  const cfEnv = event.context.cloudflare?.env as { RESEND_API_KEY?: string } | undefined
-  const resendApiKey = cfEnv?.RESEND_API_KEY
-
-  if (resendApiKey && customerEmail) {
-    try {
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${resendApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: 'The Brody Country Club <countryclub@cogitations.com>',
-          to: [customerEmail],
-          subject: 'Your order from the Brody Country Club',
-          html: `<p>Thank you for your order at The Brody Country Club.</p><p>Your order number is <strong>#${orderNumber}</strong>.</p><p>We will email you again when your order is ready for pickup.</p>`,
-        }),
-      })
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('[orders] Failed to send confirmation email', err)
-    }
+  // Send initial confirmation email (best-effort; do not fail the order on email issues)
+  if (customerEmail) {
+    const env = event.context.cloudflare?.env as { RESEND_API_KEY?: string } | undefined
+    await sendOrderPlacedEmail(env, customerEmail, orderNumber, customerName)
   }
 
   return {
