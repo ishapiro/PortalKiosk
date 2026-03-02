@@ -125,7 +125,7 @@
                 <button
                   type="button"
                   class="w-full inline-flex items-center justify-center py-2.5 px-3 rounded-lg bg-emerald-600 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 disabled:opacity-50 disabled:pointer-events-none"
-                  :disabled="placeOrderLoading || !customerName.trim() || cartItems.length === 0"
+                  :disabled="placeOrderLoading || cartItems.length === 0"
                   @click="placeOrder"
                 >
                   {{ placeOrderLoading ? 'Placing order…' : 'Place order' }}
@@ -437,7 +437,7 @@
             <button
               type="button"
               class="w-full inline-flex items-center justify-center py-3 px-4 rounded-xl bg-emerald-600 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none"
-              :disabled="placeOrderLoading || !customerName.trim() || cartItems.length === 0"
+              :disabled="placeOrderLoading || cartItems.length === 0"
               @click="placeOrder"
             >
               {{ placeOrderLoading ? 'Placing order…' : 'Place order' }}
@@ -542,8 +542,38 @@
             </button>
             <button
               type="button"
-              class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-emerald-600 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 focus:ring-offset-white"
+              :class="primaryModalButtonClasses"
               @click="showThankYouModal = false"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Transition>
+
+  <Transition name="kiosk-name-required">
+    <div
+      v-if="showNameRequiredModal"
+      class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 px-4 py-6"
+      @click.self="showNameRequiredModal = false"
+    >
+      <div class="max-w-md w-full mx-auto">
+        <div class="rounded-3xl bg-white border border-emerald-100 shadow-2xl px-5 py-6 space-y-4">
+          <div class="space-y-2">
+            <p class="text-sm font-semibold text-gray-900">
+              Enter your name first
+            </p>
+            <p class="text-xs text-gray-600">
+              Please enter your name at the top of the screen before placing your order so we can call you when it is ready.
+            </p>
+          </div>
+          <div class="pt-1 flex items-center justify-end">
+            <button
+              type="button"
+              :class="primaryModalButtonClasses"
+              @click="showNameRequiredModal = false"
             >
               Got it
             </button>
@@ -638,6 +668,9 @@ type KioskSettings = {
 
 const kioskSettings = ref<KioskSettings | null>(null)
 const showThankYouModal = ref(false)
+const showNameRequiredModal = ref(false)
+const primaryModalButtonClasses =
+  'inline-flex items-center justify-center px-4 py-2 rounded-full bg-emerald-600 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 focus:ring-offset-white'
 
 const selectedClass = computed(() =>
   classes.value.find((c) => c.id === selectedClassId.value) ?? null,
@@ -777,6 +810,7 @@ async function placeOrder() {
   const name = customerName.value.trim()
   if (!name) {
     orderError.value = 'Enter your name above.'
+    showNameRequiredModal.value = true
     return
   }
   if (cartItems.value.length === 0) {

@@ -1102,7 +1102,15 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+
 declare const definePageMeta: (meta: any) => void
+declare function $fetch<T = any>(url: string, opts?: any): Promise<T>
+declare function useAdminAuth(): {
+  isAuthenticated: () => boolean
+  setAuthenticated: () => void
+  clearAuthenticated: () => void
+}
 
 definePageMeta({
   layout: 'default',
