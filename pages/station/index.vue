@@ -266,14 +266,14 @@
     >
       <div class="flex items-center justify-between gap-3">
         <h2 class="text-base font-semibold text-gray-900 tracking-tight">
-          Active orders
+          Orders we are working on
         </h2>
         <p class="text-xs text-gray-600">
           Showing all orders; yours are highlighted.
         </p>
       </div>
       <div
-        v-if="!orders.some((o) => o.preparing_employee_id != null)"
+        v-if="!orders.some((o: StationOrder) => o.preparing_employee_id != null)"
         class="text-sm text-gray-500"
       >
         No active orders yet.
@@ -283,7 +283,7 @@
         class="space-y-1.5 text-sm"
       >
         <li
-          v-for="ord in orders.filter((o) => o.preparing_employee_id != null)"
+          v-for="ord in orders.filter((o: StationOrder) => o.preparing_employee_id != null)"
           :key="ord.id"
           :class="ord.preparing_employee_id && currentEmployeeId && ord.preparing_employee_id === currentEmployeeId
             ? 'font-semibold text-emerald-800'
@@ -310,7 +310,7 @@
           </h3>
           <div class="space-y-2">
             <article
-              v-for="ord in orders.filter((o) => o.status === 'new' && !o.preparing_employee_id)"
+              v-for="ord in orders.filter((o: StationOrder) => o.status === 'new' && !o.preparing_employee_id)"
               :key="ord.id"
               class="rounded-2xl border border-gray-200 bg-gray-50 px-3 py-3 space-y-2"
             >
@@ -344,7 +344,7 @@
               </div>
             </article>
             <p
-              v-if="!orders.some((o) => o.status === 'new' && !o.preparing_employee_id)"
+              v-if="!orders.some((o: StationOrder) => o.status === 'new' && !o.preparing_employee_id)"
               class="text-xs text-gray-500"
             >
               No orders waiting to be packed.
@@ -358,7 +358,7 @@
           </h3>
           <div class="space-y-2">
             <article
-              v-for="ord in orders.filter((o) => o.status === 'ready' && !o.preparing_employee_id)"
+              v-for="ord in orders.filter((o: StationOrder) => o.status === 'ready' && !o.preparing_employee_id)"
               :key="ord.id"
               class="rounded-2xl border border-gray-200 bg-gray-50 px-3 py-3 space-y-2"
             >
@@ -392,7 +392,7 @@
               </div>
             </article>
             <p
-              v-if="!orders.some((o) => o.status === 'ready' && !o.preparing_employee_id)"
+              v-if="!orders.some((o: StationOrder) => o.status === 'ready' && !o.preparing_employee_id)"
               class="text-xs text-gray-500"
             >
               No orders waiting for delivery.
@@ -405,6 +405,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue'
+
 definePageMeta({
   layout: 'default',
 })
@@ -452,7 +454,7 @@ const currentEmployeeId = ref<number | null>(null)
 
 const currentEmployeeName = computed(() => {
   if (currentEmployeeId.value == null) return ''
-  const emp = employees.value.find((e) => e.id === currentEmployeeId.value)
+  const emp = employees.value.find((e: StationEmployee) => e.id === currentEmployeeId.value)
   return emp ? emp.name : ''
 })
 
@@ -460,10 +462,9 @@ const myCurrentOrder = computed(() =>
   currentEmployeeId.value == null
     ? null
     : orders.value.find(
-        (o) =>
+        (o: StationOrder) =>
           o.preparing_employee_id === currentEmployeeId.value &&
-          o.status !== 'delivered' &&
-          o.status !== 'cancelled',
+          o.status !== 'delivered',
       ) ?? null,
 )
 

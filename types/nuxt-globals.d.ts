@@ -7,6 +7,11 @@ declare function $fetch<T = any>(input: any, init?: any): Promise<T>
 
 // Client-side router (Nuxt auto-imports this at runtime)
 declare function useRouter(): any
+declare function useStationAuth(): {
+  isAuthenticated: () => boolean
+  setAuthenticated: () => void
+  clearAuthenticated: () => void
+}
 
 // Server-side / Nitro utilities
 declare function defineEventHandler(handler: any): any

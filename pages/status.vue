@@ -175,6 +175,12 @@
                   <p class="text-xs text-slate-300">
                     {{ ord.customer_name }}
                   </p>
+                  <p class="text-[11px] text-slate-400">
+                    Employee on order:
+                    <span class="font-medium">
+                      {{ ord.preparing_employee_name || 'Not yet assigned' }}
+                    </span>
+                  </p>
                 </div>
                 <div class="flex items-center gap-1.5 whitespace-nowrap">
                   <span class="text-[11px] font-medium text-amber-200">
@@ -205,7 +211,7 @@
             <header class="flex items-center justify-between gap-3">
               <div>
                 <h2 class="text-sm font-semibold text-sky-100 tracking-tight">
-                  Being prepared
+                  Orders in preparation
                 </h2>
                 <p class="text-[11px] text-sky-200/80">
                   Our team is building these now.
@@ -221,7 +227,7 @@
                 :key="ord.id"
                 class="group rounded-2xl bg-slate-950/50 border border-slate-800/70 px-3 py-2 flex items-center justify-between gap-3 transition transform hover:-translate-y-0.5 hover:border-sky-400/80 hover:bg-slate-900/80"
               >
-                <div>
+                <div class="space-y-0.5">
                   <button
                     type="button"
                     class="text-sm font-semibold text-slate-50 hover:underline"
@@ -231,6 +237,12 @@
                   </button>
                   <p class="text-xs text-slate-300">
                     {{ ord.customer_name }}
+                  </p>
+                  <p class="text-[11px] text-sky-200">
+                    Employee on order:
+                    <span class="font-medium">
+                      {{ ord.preparing_employee_name || 'Not yet assigned' }}
+                    </span>
                   </p>
                 </div>
                 <div class="flex items-center gap-1.5 text-[11px] text-sky-200 whitespace-nowrap">
@@ -288,7 +300,7 @@
                 :key="ord.id"
                 class="group rounded-2xl bg-slate-950/50 border border-slate-800/70 px-3 py-2 flex items-center justify-between gap-3 transition transform hover:-translate-y-0.5 hover:border-emerald-400/80 hover:bg-slate-900/80"
               >
-                <div>
+                <div class="space-y-0.5">
                   <button
                     type="button"
                     class="text-sm font-semibold text-slate-50 hover:underline"
@@ -298,6 +310,12 @@
                   </button>
                   <p class="text-xs text-slate-300">
                     {{ ord.customer_name }}
+                  </p>
+                  <p class="text-[11px] text-emerald-200">
+                    Employee on order:
+                    <span class="font-medium">
+                      {{ ord.preparing_employee_name || 'Not yet assigned' }}
+                    </span>
                   </p>
                 </div>
                 <div class="flex items-center gap-1.5 whitespace-nowrap">
@@ -467,6 +485,7 @@ interface StatusOrder {
   customer_name: string
   status: 'new' | 'preparing' | 'ready'
   created_at: string
+  preparing_employee_name?: string | null
   items: StatusOrderItem[]
 }
 

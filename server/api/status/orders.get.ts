@@ -10,14 +10,16 @@ export default defineEventHandler(async (event) => {
 
   const ordersResult = await db
     .prepare(
-      `SELECT id,
-              order_number,
-              customer_name,
-              status,
-              created_at
-       FROM orders
-       WHERE status IN ('new', 'preparing', 'ready')
-       ORDER BY created_at ASC, id ASC`,
+      `SELECT o.id,
+              o.order_number,
+              o.customer_name,
+              o.status,
+              o.created_at,
+              e.name AS preparing_employee_name
+       FROM orders o
+       LEFT JOIN employees e ON e.id = o.preparing_employee_id
+       WHERE o.status IN ('new', 'preparing', 'ready')
+       ORDER BY o.created_at ASC, o.id ASC`,
     )
     .all()
 
@@ -28,6 +30,7 @@ export default defineEventHandler(async (event) => {
       customer_name: string
       status: string
       created_at: string
+      preparing_employee_name: string | null
     }[]) ?? []
 
   const orderIds = orderRows.map((o) => o.id)
@@ -88,6 +91,7 @@ export default defineEventHandler(async (event) => {
     customer_name: o.customer_name,
     status: o.status,
     created_at: o.created_at,
+    preparing_employee_name: o.preparing_employee_name,
     items: itemsByOrderId.get(o.id) ?? [],
   }))
 
