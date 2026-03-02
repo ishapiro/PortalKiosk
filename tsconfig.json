@@ -10,6 +10,6 @@
     "isolatedModules": true,
     "noEmit": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "**/*.vue"],
+  "include": ["**/*.ts", "**/*.tsx", "**/*.vue", "**/*.d.ts"],
   "exclude": ["node_modules", ".nuxt", ".output"]
 }

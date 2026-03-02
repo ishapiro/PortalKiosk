@@ -20,7 +20,7 @@
             class="block text-xs font-medium text-gray-700 uppercase tracking-wide"
           >
             Your name (required) / השם שלך
-        </label>
+          </label>
           <input
             id="customer-name-top"
             v-model="customerName"
@@ -29,6 +29,29 @@
             class="w-full max-w-xs px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             autocomplete="name"
           />
+        </div>
+        <div class="space-y-1.5">
+          <label
+            for="customer-email-top"
+            class="block text-xs font-medium text-gray-700 uppercase tracking-wide"
+          >
+            Email address (required) / אימייל
+          </label>
+          <input
+            id="customer-email-top"
+            v-model="customerEmail"
+            type="email"
+            placeholder="Enter your email"
+            class="w-full max-w-xs px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            autocomplete="email"
+            @blur="validateEmailField"
+          />
+          <p
+            v-if="emailError"
+            class="text-[11px] text-red-600"
+          >
+            {{ emailError }}
+          </p>
         </div>
       </div>
       <div class="mt-1 md:mt-0 flex items-center gap-3 text-xs sm:text-sm">
@@ -114,7 +137,7 @@
                   </span>
                 </div>
                 <p class="text-[11px] text-gray-500">
-                  You must enter your name before placing your order so we can call you when it is ready.
+                  You must enter your name and email before placing your order so we can call or email you when it is ready.
                 </p>
                 <p
                   v-if="orderError"
@@ -426,7 +449,7 @@
               </span>
             </div>
             <p class="text-xs text-gray-500">
-              You must enter your name before placing your order so we can call you when it is ready.
+              You must enter your name and email before placing your order so we can call or email you when it is ready.
             </p>
             <p
               v-if="orderError"
@@ -515,6 +538,12 @@
               class="prose prose-sm max-w-none text-gray-800"
               v-html="kioskSettings?.kiosk_thank_you_html || '<p>Your order has been sent to the kitchen.</p><p>We will call your name when it is ready.</p>'"
             />
+            <p class="text-[11px] text-gray-600">
+              We have sent you an email confirmation for this order with the subject
+              &quot;Your order from the Brody Country Club&quot; from &quot;The Brody Country Club&quot;
+              at countryclub@cogitations.com. You will receive a second email when your order is ready.
+              If you do not see our emails, please check your spam folder.
+            </p>
 
             <div
               v-if="kioskSettings?.kiosk_thank_you_link_url"
@@ -563,10 +592,10 @@
         <div class="rounded-3xl bg-white border border-emerald-100 shadow-2xl px-5 py-6 space-y-4">
           <div class="space-y-2">
             <p class="text-sm font-semibold text-gray-900">
-              Enter your name first
+              Enter your name and email first
             </p>
             <p class="text-xs text-gray-600">
-              Please enter your name at the top of the screen before placing your order so we can call you when it is ready.
+              Please enter your name and email at the top of the screen before placing your order so we can call or email you when it is ready.
             </p>
           </div>
           <div class="pt-1 flex items-center justify-end">
@@ -601,8 +630,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
-declare const definePageMeta: (meta: any) => void
-declare function $fetch<T = any>(input: any, init?: any): Promise<T>
 
 definePageMeta({
   layout: 'kiosk',
@@ -655,10 +682,12 @@ const selectionByCustomization = ref<Record<number, string[]>>({})
 
 const cartItems = ref<CartItem[]>([])
 const customerName = ref('')
+const customerEmail = ref('')
 const orderNumber = ref<number | null>(null)
 const orderError = ref('')
 const placeOrderLoading = ref(false)
 const topTraySection = ref<HTMLElement | null>(null)
+const emailError = ref('')
 
 type KioskSettings = {
   kiosk_thank_you_html: string | null
@@ -686,6 +715,24 @@ const selectedProduct = computed<MenuProduct | null>(() => {
 const cartTotal = computed(() =>
   cartItems.value.reduce((sum, item) => sum + item.priceCents, 0),
 )
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+function validateEmailField() {
+  const value = customerEmail.value.trim()
+  if (!value) {
+    emailError.value = 'Enter your email address.'
+    return false
+  }
+  if (!isValidEmail(value)) {
+    emailError.value = 'Enter a valid email address.'
+    return false
+  }
+  emailError.value = ''
+  return true
+}
 
 function formatPrice(priceCents: number) {
   const value = (priceCents || 0) / 100
@@ -808,9 +855,15 @@ function clearCart() {
 
 async function placeOrder() {
   const name = customerName.value.trim()
-  if (!name) {
-    orderError.value = 'Enter your name above.'
+  const emailIsValid = validateEmailField()
+  const email = customerEmail.value.trim()
+  if (!name || !email) {
+    orderError.value = 'Enter your name and email above.'
     showNameRequiredModal.value = true
+    return
+  }
+  if (!emailIsValid) {
+    orderError.value = 'Enter a valid email address above.'
     return
   }
   if (cartItems.value.length === 0) {
@@ -824,6 +877,7 @@ async function placeOrder() {
       method: 'POST',
       body: {
         customer_name: name,
+        customer_email: email,
         items: cartItems.value.map((item) => ({
           product_id: item.productId,
           product_class_id: item.productClassId,

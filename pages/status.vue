@@ -407,8 +407,6 @@
 </template>
 
 <script setup lang="ts">
-declare const definePageMeta: (meta: any) => void
-
 definePageMeta({
   layout: false,
 })

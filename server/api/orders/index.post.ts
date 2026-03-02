@@ -7,18 +7,35 @@ interface OrderItemBody {
 
 interface CreateOrderBody {
   customer_name: string
+  customer_email: string
   items: OrderItemBody[]
 }
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event: any) => {
   const body = await readBody<CreateOrderBody>(event)
   const customerName = body?.customer_name?.trim()
+  const customerEmail = body?.customer_email?.trim()
   const items = body?.items
 
   if (!customerName) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Customer name is required',
+    })
+  }
+
+  if (!customerEmail) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Customer email is required',
+    })
+  }
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailPattern.test(customerEmail)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Invalid email address',
     })
   }
 
@@ -77,7 +94,7 @@ export default defineEventHandler(async (event) => {
        RETURNING value`,
     )
     .bind(seqKey)
-    .first<{ value: number }>()
+    .first()
 
   let orderNumber: number
 
@@ -88,7 +105,7 @@ export default defineEventHandler(async (event) => {
     // (e.g. smaller than existing order_number values), bump it forward
     const maxResult = await db
       .prepare('SELECT COALESCE(MAX(order_number), 0) AS max_num FROM orders')
-      .first<{ max_num: number }>()
+      .first()
 
     const currentMax = maxResult?.max_num ?? 0
     if (orderNumber <= currentMax || orderNumber <= 1134) {
@@ -108,7 +125,7 @@ export default defineEventHandler(async (event) => {
     // No existing sequence row yet: initialize it based on current max(order_number)
     const maxResult = await db
       .prepare('SELECT COALESCE(MAX(order_number), 0) AS max_num FROM orders')
-      .first<{ max_num: number }>()
+      .first()
 
     const base = Math.max(1134, maxResult?.max_num ?? 0)
     orderNumber = base + 1
@@ -196,6 +213,30 @@ export default defineEventHandler(async (event) => {
     }
 
     await itemStmt.bind(orderId, productId, productClassId, quantity, customizationsJson).run()
+  }
+
+  const cfEnv = event.context.cloudflare?.env as { RESEND_API_KEY?: string } | undefined
+  const resendApiKey = cfEnv?.RESEND_API_KEY
+
+  if (resendApiKey && customerEmail) {
+    try {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'The Brody Country Club <countryclub@cogitations.com>',
+          to: [customerEmail],
+          subject: 'Your order from the Brody Country Club',
+          html: `<p>Thank you for your order at The Brody Country Club.</p><p>Your order number is <strong>#${orderNumber}</strong>.</p><p>We will email you again when your order is ready for pickup.</p>`,
+        }),
+      })
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[orders] Failed to send confirmation email', err)
+    }
   }
 
   return {
