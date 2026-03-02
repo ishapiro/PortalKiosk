@@ -35,7 +35,8 @@
             for="customer-email-top"
             class="block text-xs font-medium text-gray-700 uppercase tracking-wide"
           >
-            Email address (required) / אימייל
+            Email address (required) / 
+            מייל
           </label>
           <input
             id="customer-email-top"
