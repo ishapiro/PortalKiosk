@@ -308,7 +308,7 @@
           <h3 class="text-xs font-semibold text-gray-900 uppercase tracking-wide">
             Waiting for packing
           </h3>
-          <div class="space-y-2">
+          <div class="space-y-2 overflow-y-auto pr-1" style="max-height: 55vh;">
             <article
               v-for="ord in orders.filter((o: StationOrder) => o.status === 'new' && !o.preparing_employee_id)"
               :key="ord.id"
@@ -356,7 +356,7 @@
           <h3 class="text-xs font-semibold text-gray-900 uppercase tracking-wide">
             Waiting for delivery
           </h3>
-          <div class="space-y-2">
+          <div class="space-y-2 overflow-y-auto pr-1" style="max-height: 55vh;">
             <article
               v-for="ord in orders.filter((o: StationOrder) => o.status === 'ready' && !o.preparing_employee_id)"
               :key="ord.id"

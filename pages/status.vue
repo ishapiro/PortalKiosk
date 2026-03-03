@@ -141,10 +141,10 @@
 
         <section
           v-else-if="authed"
-          class="grid gap-3 grid-cols-1 lg:grid-cols-3 h-[calc(100%-8rem)]"
+          class="grid gap-3 grid-cols-1 lg:grid-cols-3 h-[calc(100%-8rem)] min-h-0"
         >
           <!-- New -->
-          <div class="rounded-3xl border border-amber-500/40 bg-gradient-to-b from-amber-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-3 space-y-2 shadow-lg shadow-amber-900/40 flex flex-col h-full">
+          <div class="rounded-3xl border border-amber-500/40 bg-gradient-to-b from-amber-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-3 space-y-2 shadow-lg shadow-amber-900/40 flex flex-col h-full min-h-0">
             <header class="flex items-center justify-between gap-3">
               <div>
                 <h2 class="text-sm font-semibold text-amber-100 tracking-tight">
@@ -158,7 +158,7 @@
                 {{ grouped.new.length }}
               </span>
             </header>
-            <ul class="space-y-1.5 pr-1">
+            <ul class="space-y-1.5 pr-1 flex-1 overflow-y-scroll touch-pan-y status-column-list">
               <li
                 v-for="ord in grouped.new"
                 :key="ord.id"
@@ -207,7 +207,7 @@
           </div>
 
           <!-- Preparing -->
-          <div class="rounded-3xl border border-sky-500/40 bg-gradient-to-b from-sky-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-3 space-y-2 shadow-lg shadow-sky-900/40 flex flex-col h-full">
+          <div class="rounded-3xl border border-sky-500/40 bg-gradient-to-b from-sky-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-3 space-y-2 shadow-lg shadow-sky-900/40 flex flex-col h-full min-h-0">
             <header class="flex items-center justify-between gap-3">
               <div>
                 <h2 class="text-sm font-semibold text-sky-100 tracking-tight">
@@ -221,7 +221,7 @@
                 {{ grouped.preparing.length }}
               </span>
             </header>
-            <ul class="space-y-1.5 pr-1">
+            <ul class="space-y-1.5 pr-1 flex-1 overflow-y-scroll touch-pan-y status-column-list">
               <li
                 v-for="ord in grouped.preparing"
                 :key="ord.id"
@@ -280,7 +280,7 @@
           </div>
 
           <!-- Ready / Delivery -->
-          <div class="rounded-3xl border border-emerald-500/40 bg-gradient-to-b from-emerald-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-3 space-y-2 shadow-lg shadow-emerald-900/40 flex flex-col h-full">
+          <div class="rounded-3xl border border-emerald-500/40 bg-gradient-to-b from-emerald-950/70 via-slate-950/50 to-slate-950/70 p-3 sm:p-3 space-y-2 shadow-lg shadow-emerald-900/40 flex flex-col h-full min-h-0">
             <header class="flex items-center justify-between gap-3">
               <div>
                 <h2 class="text-sm font-semibold text-emerald-100 tracking-tight">
@@ -294,7 +294,7 @@
                 {{ grouped.ready.length }}
               </span>
             </header>
-            <ul class="space-y-1.5 pr-1">
+            <ul class="space-y-1.5 pr-1 flex-1 overflow-y-scroll touch-pan-y status-column-list">
               <li
                 v-for="ord in grouped.ready"
                 :key="ord.id"
@@ -738,4 +738,23 @@ function dismissEmailStatusModal() {
 }
 </script>
 
+<style scoped>
+.status-column-list {
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+
+.status-column-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.status-column-list::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.7);
+}
+
+.status-column-list::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.9);
+  border-radius: 9999px;
+}
+</style>
 
