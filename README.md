@@ -1,5 +1,7 @@
 # PortalKiosk
-PortalKiosk is a smart kiosk orchestration system designed to route user selections to targeted remote displays. By mapping specific items to unique destinations, it enables seamless multi-device workflows—perfect for hospitality, logistics, or interactive exhibits.
+This application is designed to demonstrate how to build a Vibe-coded production-ready application.
+
+The application is a restaurant order application with a customer order page, kitchen production pages, a status board, and a full admin subsystem.
 
 ## Hosting on Cloudflare (Wrangler)
 
